@@ -1,0 +1,41 @@
+Datentypen:
+
+Aktuell erstmal nur 2 Datentypen:
+uint8: unsigned integer 8 byte
+uint16: unsigned integer 16 byte
+void: nichts
+
+Variablen:
+
+Beispiel code für definieren einer variable:
+uint8 x = 88;
+
+Methoden:
+
+void xyz() {
+    ...
+}
+
+uint16 xyz(uint16 param) {
+    ...
+    return param;
+}
+
+xyz();
+
+Kommentare:
+lines mit // zeichen
+block mit /* ... */
+
+Operatoren:
++ -
+
+conditions:
+
+if(condition) {
+    ...
+} else if(condition) {
+
+} else {
+
+}
