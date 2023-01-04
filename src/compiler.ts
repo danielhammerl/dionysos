@@ -83,12 +83,12 @@ export class Compiler {
     switch (statement.operator) {
       case "+": {
         this.buildAsmLine("ADD", left, right);
-        this.registers[right as typeof Registers[number]] = "LITERAL";
+        this.registers[right as typeof Registers[number]] = "FREE";
         return left;
       }
       case "-": {
         this.buildAsmLine("SUB", left, right);
-        this.registers[right as typeof Registers[number]] = "LITERAL";
+        this.registers[right as typeof Registers[number]] = "FREE";
         return left;
       }
       default: {
