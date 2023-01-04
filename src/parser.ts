@@ -37,7 +37,7 @@ export class Parser {
 
     return {
       type: "PROGRAM",
-      body: this._statements.filter((statement) => statement.type !== "EMPTY"),
+      body: this._statements,
     };
   }
 

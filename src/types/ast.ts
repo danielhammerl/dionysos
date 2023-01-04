@@ -1,4 +1,4 @@
-export type NodeType = "PROGRAM" | "NUMERIC_LITERAL" | "IDENTIFIER" | "BINARY_EXPRESSION" | "EMPTY";
+export type NodeType = "PROGRAM" | "NUMERIC_LITERAL" | "IDENTIFIER" | "BINARY_EXPRESSION";
 
 export interface Statement {
   type: NodeType;
@@ -10,9 +10,6 @@ export interface Program extends Statement {
 }
 
 export interface Expression extends Statement {}
-export interface EmptyExpression extends Expression {
-  type: "EMPTY";
-}
 
 export interface BinaryExpression extends Expression {
   type: "BINARY_EXPRESSION";
