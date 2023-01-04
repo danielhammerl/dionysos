@@ -5,7 +5,7 @@ import {
   HALF_WORD_LENGTH,
   HalfWord,
   MAX_BYTE_VALUE,
-  MAX_HALF_WORD_VALUE,
+  MAX_HALF_WORD_VALUE, Registers
 } from "@danielhammerl/dca-architecture";
 
 export const isAlphaNumeric = (input: string): boolean => {
@@ -90,3 +90,6 @@ export const isHalfWord = (data: string[]): data is HalfWord => {
 export const getBaseLog = (x: number, y: number): number => {
   return Math.log(y) / Math.log(x);
 };
+
+export const isRegister = (data: string): data is typeof Registers[number] =>
+  Registers.includes(data as any);

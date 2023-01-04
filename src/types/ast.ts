@@ -1,4 +1,11 @@
-export type NodeType = "PROGRAM" | "NUMERIC_LITERAL" | "IDENTIFIER" | "BINARY_EXPRESSION";
+import { dataTypeList } from "./internalDataTypes";
+
+export type NodeType =
+  | "PROGRAM"
+  | "VARIABLE_DECLARATION"
+  | "NUMERIC_LITERAL"
+  | "IDENTIFIER"
+  | "BINARY_EXPRESSION";
 
 export interface Statement {
   type: NodeType;
@@ -28,4 +35,9 @@ export interface NumericLiteral extends Expression {
   value: BigInt;
 }
 
-export type ParseExpressionFn = () => Statement;
+export interface VariableDeclaration extends Statement {
+  type: "VARIABLE_DECLARATION";
+  identifier: string;
+  dataType: string;
+  value?: Expression;
+}

@@ -7,7 +7,7 @@
     "doc": "doc"
   },
   "scripts": {
-    "start": "ts-node ./src/index.ts",
+    "start": "ts-node ./src/index.ts --debug",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

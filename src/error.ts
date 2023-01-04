@@ -10,6 +10,7 @@ export enum ErrorType {
   E_UNRECOGNIZED_TOKEN,
   E_SYNTAX,
   E_NOT_IMPLEMENTED,
+  E_UNDEFINED,
 }
 
 const levelStringMap: Record<ErrorLevel, string> = {

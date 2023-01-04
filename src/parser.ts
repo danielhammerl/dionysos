@@ -5,6 +5,7 @@ import {
   NumericLiteral,
   Program,
   Statement,
+  VariableDeclaration,
 } from "./types/ast";
 import { Token } from "./types/token";
 import { ErrorLevel, ErrorType, log } from "./error";
@@ -42,11 +43,39 @@ export class Parser {
   }
 
   private parseStatement(): Statement {
-    return this.parseExpression();
+    const token = this.getCurrentToken();
+    switch (token.type) {
+      case "T_DATA_TYPE": {
+        return this.parseVariableDeclaration();
+      }
+      default: {
+        return this.parseExpression();
+      }
+    }
   }
 
   private parseExpression(): Expression {
     return this.parseAdditiveExpression();
+  }
+
+  private parseVariableDeclaration(): VariableDeclaration {
+    const dataTypeToken = this.getCurrentTokenAndRemoveFromList();
+    const identifierToken = this.getCurrentTokenAndRemoveFromList();
+    if (identifierToken.type !== "T_IDENTIFIER") {
+      log(
+        "Expected identifier, got " + identifierToken.value,
+        ErrorType.E_SYNTAX,
+        ErrorLevel.ERROR
+      );
+    }
+    const nextToken = this.getCurrentTokenAndRemoveFromList();
+
+    return {
+      type: "VARIABLE_DECLARATION",
+      identifier: identifierToken.value,
+      value: nextToken.type === "T_EOI" ? undefined : this.parseExpression(),
+      dataType: dataTypeToken.value,
+    };
   }
 
   private parseAdditiveExpression(): Expression {
@@ -102,7 +131,7 @@ export class Parser {
       }
 
       default: {
-        return log("Unknown token: " + token.value, ErrorType.E_SYNTAX, ErrorLevel.ERROR);
+        return log("Unknown token: " + token.value, ErrorType.E_SYNTAX, ErrorLevel.INTERNAL);
       }
     }
   }

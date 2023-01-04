@@ -1,11 +1,21 @@
-import { BinaryExpression, NumericLiteral, Program, Statement } from "./types/ast";
+import {
+  BinaryExpression,
+  Identifier,
+  NumericLiteral,
+  Program,
+  Statement,
+  VariableDeclaration,
+} from "./types/ast";
 import { HalfWord, Instructions, Registers } from "@danielhammerl/dca-architecture";
 import * as lodash from "lodash";
 import { ErrorLevel, ErrorType, log } from "./error";
-import { bigIntToHalfWord, bigIntToHex, decToHalfWord } from "./util";
+import { bigIntToHex } from "./util";
+import { REGISTER_USAGE_TYPE, Variable } from "./types/compiler";
 
 export class Compiler {
   private asmLines: string[] = [];
+
+  private variableRegistry: Variable[] = [];
 
   private addAsmLines(lines: string | string[]) {
     if (Array.isArray(lines)) {
@@ -23,30 +33,36 @@ export class Compiler {
     const operand2AsString = Array.isArray(operand2) ? operand2.join(" ") : operand2;
     this.addAsmLines(`${instruction} ${operand1} ${operand2AsString}`);
   }
-  private usedRegisters: Partial<Record<typeof Registers[number], boolean>> = {
-    R00: false,
-    R01: false,
-    R02: false,
-    R03: false,
-    R04: false,
-    R05: false,
-    R06: false,
-    R07: false,
-    R08: false,
-    R09: false,
-    R10: false,
+  private registers: Partial<Record<typeof Registers[number], REGISTER_USAGE_TYPE>> = {
+    R00: "FREE",
+    R01: "FREE",
+    R02: "FREE",
+    R03: "FREE",
+    R04: "FREE",
+    R05: "FREE",
+    R06: "FREE",
+    R07: "FREE",
+    R08: "FREE",
+    R09: "FREE",
+    R10: "FREE",
   };
 
   private freeAllRegisters() {
-    lodash.mapValues(this.usedRegisters, () => false);
+    lodash.mapValues(this.registers, () => "FREE");
   }
 
-  private getNextFreeRegister() {
-    return (
-      Object.keys(this.usedRegisters).find(
-        (key) => !this.usedRegisters[key as typeof Registers[number]]
-      ) || null
-    );
+  private getNextFreeRegister(): string {
+    const nextFreeRegister =
+      Object.keys(this.registers).find(
+        (key) => this.registers[key as typeof Registers[number]] === "FREE"
+      ) || null;
+
+    if (nextFreeRegister === null) {
+      // handle this
+      log("No free register!", ErrorType.E_NOT_IMPLEMENTED, ErrorLevel.INTERNAL);
+    }
+
+    return nextFreeRegister;
   }
 
   public compile(program: Program): string {
@@ -66,12 +82,12 @@ export class Compiler {
     switch (statement.operator) {
       case "+": {
         this.buildAsmLine("ADD", left, right);
-        this.usedRegisters[right as typeof Registers[number]] = false;
+        this.registers[right as typeof Registers[number]] = "LITERAL";
         return left;
       }
       case "-": {
         this.buildAsmLine("SUB", left, right);
-        this.usedRegisters[right as typeof Registers[number]] = false;
+        this.registers[right as typeof Registers[number]] = "LITERAL";
         return left;
       }
       default: {
@@ -85,30 +101,72 @@ export class Compiler {
   }
 
   private compileStatement(statement: Statement): string {
-    if (statement.type === "BINARY_EXPRESSION") {
-      return this.evaluateBinaryExpression(statement as BinaryExpression);
-    }
-
-    if (statement.type === "NUMERIC_LITERAL") {
-      const registerToUse = this.getNextFreeRegister();
-      if (registerToUse === null) {
-        log("No free register", ErrorType.E_NOT_IMPLEMENTED, ErrorLevel.INTERNAL);
+    switch (statement.type) {
+      case "BINARY_EXPRESSION": {
+        return this.evaluateBinaryExpression(statement as BinaryExpression);
       }
 
-      this.buildAsmLine(
-        "SET",
-        registerToUse,
-        bigIntToHex((statement as NumericLiteral).value.valueOf())
-      );
-      this.usedRegisters[registerToUse as typeof Registers[number]] = true;
+      case "NUMERIC_LITERAL": {
+        const registerToUse = this.getNextFreeRegister();
 
-      return registerToUse;
+        this.buildAsmLine(
+          "SET",
+          registerToUse,
+          bigIntToHex((statement as NumericLiteral).value.valueOf())
+        );
+        this.registers[registerToUse as typeof Registers[number]] = "LITERAL";
+
+        return registerToUse;
+      }
+
+      case "IDENTIFIER": {
+        const identifier = (statement as Identifier).symbol;
+        const variable = this.variableRegistry.find(
+          (variable) => variable.identifier === identifier
+        );
+        if (variable) {
+          if (variable.storedAt !== null) {
+            return variable.storedAt;
+          } else {
+            const registerToUse = this.getNextFreeRegister();
+            this.buildAsmLine("SET", registerToUse, "0x0");
+            this.registers[registerToUse as typeof Registers[number]] = "VARIABLE";
+
+            return registerToUse;
+          }
+        } else {
+          log("Undefined identifier : " + identifier, ErrorType.E_UNDEFINED, ErrorLevel.ERROR);
+        }
+      }
+
+      case "VARIABLE_DECLARATION": {
+        const { identifier, dataType, value } = statement as VariableDeclaration;
+
+        if (dataType !== "uint8" && dataType !== "uint16") {
+          log(
+            "Unrecognized datatype: " + dataType,
+            ErrorType.E_UNRECOGNIZED_TOKEN,
+            ErrorLevel.INTERNAL
+          );
+        }
+
+        const valueStoredAt = value ? this.compileStatement(value) : null;
+
+        const variable: Variable = { identifier, dataType, storedAt: valueStoredAt };
+        if (valueStoredAt) {
+          this.registers[valueStoredAt as typeof Registers[number]] = "VARIABLE";
+        }
+        this.variableRegistry.push(variable);
+        return variable.storedAt || "";
+      }
+
+      default: {
+        log(
+          "Not implemented statement " + statement.type,
+          ErrorType.E_NOT_IMPLEMENTED,
+          ErrorLevel.INTERNAL
+        );
+      }
     }
-
-    log(
-      "Not implemented statement " + statement.type,
-      ErrorType.E_NOT_IMPLEMENTED,
-      ErrorLevel.INTERNAL
-    );
   }
 }

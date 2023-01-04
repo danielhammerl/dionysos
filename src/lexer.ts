@@ -1,6 +1,7 @@
 import { Token, TokenType } from "./types/token";
 import { isAlphaNumeric, isNumeric } from "./util";
 import { ErrorLevel, ErrorType, log } from "./error";
+import { dataTypeList } from "./types/internalDataTypes";
 
 export const lexicate = (input: string): Token[] => {
   const src = input.split("");
@@ -47,7 +48,6 @@ const charTokenMap: Partial<Record<string, TokenType>> = {
   ")": "T_PARENTHESIS_CLOSE",
 };
 
-const dataTypeList: string[] = ["uint8", "uint16"];
 
 const isIgnorable = (input: string) => {
   return input === " " || input === "\n" || input === "\r" || input === "\t" || input === "\r\n";
