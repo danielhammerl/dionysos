@@ -1,31 +1,47 @@
 #!/usr/bin/env ts-node-script
 import { Compiler } from "./compiler";
-
 require("util").inspect.defaultOptions.depth = null;
-
-console.log("Starting dionysos dca compiler ...");
 import { preprocessing } from "./preprocessor";
 import fs from "fs";
 import { lexicate } from "./lexer";
 import { Parser } from "./parser";
+import { program } from "commander";
 
-const startTime = performance.now();
+function runCompiler(source: string, output: string, options: any) {
+  console.log("Starting dionysos dca compiler ...");
 
-const dummyCode = fs.readFileSync("./dummyCode.txt", { encoding: "utf-8" });
+  const startTime = performance.now();
 
-const preprocessed = preprocessing(dummyCode);
+  const dummyCode = fs.readFileSync(source, { encoding: "utf-8" });
 
-const tokens = lexicate(preprocessed);
+  const preprocessed = preprocessing(dummyCode);
 
-const parser = new Parser();
-const ast = parser.parse(tokens);
+  const tokens = lexicate(preprocessed);
 
-console.log(ast);
+  const parser = new Parser();
+  const ast = parser.parse(tokens);
 
-const compiler = new Compiler();
-const compiled = compiler.compile(ast);
+  if (options.debug) {
+    console.log(ast);
+  }
 
-fs.writeFileSync("./dummyCodeCompiled.txt", compiled, { encoding: "utf-8" });
+  const compiler = new Compiler();
+  const compiled = compiler.compile(ast);
 
-const endTime = performance.now();
-console.log("Compilation finished successfully in " + Math.round(endTime - startTime) / 1000 + "s");
+  fs.writeFileSync(output, compiled, { encoding: "utf-8" });
+
+  const endTime = performance.now();
+  console.log(
+    "Compilation finished successfully in " + Math.round(endTime - startTime) / 1000 + "s"
+  );
+}
+
+program
+  .argument("[source]", "source file", "./dummyCode.txt")
+  .argument("[output]", "output file", "./dummyCodeCompiled.dcaasm")
+  .option("-d, --debug", "debug mode", false)
+  .action((source, output, options) => {
+    runCompiler(source, output, options);
+  });
+
+program.parse();
