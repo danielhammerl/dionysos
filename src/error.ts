@@ -31,4 +31,4 @@ function log(message: string, type: ErrorType, level: ErrorLevel): void {
   }
 }
 
-export {log};
+export { log };

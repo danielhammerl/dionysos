@@ -13,10 +13,10 @@ const dummyCode = fs.readFileSync("./dummyCode.txt", { encoding: "utf-8" });
 
 const preprocessed = preprocessing(dummyCode);
 
-const lexicated = lexicate(preprocessed);
+const tokens = lexicate(preprocessed);
 
 const parser = new Parser();
-const ast = parser.parse(lexicated);
+const ast = parser.parse(tokens);
 
 console.log(ast);
 
