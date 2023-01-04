@@ -4,6 +4,7 @@ import {
   NumericLiteral,
   Program,
   Statement,
+  VariableAssignment,
   VariableDeclaration,
 } from "./types/ast";
 import { HalfWord, Instructions, Registers } from "@danielhammerl/dca-architecture";
@@ -135,9 +136,12 @@ export class Compiler {
             return registerToUse;
           }
         } else {
-          log("Undefined identifier : " + identifier, ErrorType.E_UNDEFINED, ErrorLevel.ERROR);
+          return log(
+            "Undefined identifier : " + identifier,
+            ErrorType.E_UNDEFINED,
+            ErrorLevel.ERROR
+          );
         }
-        break;
       }
 
       case "VARIABLE_DECLARATION": {
@@ -159,6 +163,18 @@ export class Compiler {
         }
         this.variableRegistry.push(variable);
         return variable.storedAt || "";
+      }
+
+      case "VARIABLE_ASSIGNMENT": {
+        const { identifier, value } = statement as VariableAssignment;
+        const variable = this.variableRegistry.find((item) => item.identifier === identifier);
+        if (!variable) {
+          return log("Undefined variable " + variable, ErrorType.E_UNDEFINED, ErrorLevel.ERROR);
+        }
+
+        variable.storedAt = this.compileStatement(value);
+        this.registers[variable.storedAt as typeof Registers[number]] = "VARIABLE";
+        return variable.storedAt;
       }
 
       default: {

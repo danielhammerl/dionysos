@@ -5,6 +5,7 @@ import {
   NumericLiteral,
   Program,
   Statement,
+  VariableAssignment,
   VariableDeclaration,
 } from "./types/ast";
 import { Token } from "./types/token";
@@ -98,14 +99,26 @@ export class Parser {
     return this.parsePrimaryExpression();
   }
 
-  private parsePrimaryExpression(): Expression {
+  private parsePrimaryExpression(): Expression | Identifier | VariableAssignment {
     const token = this.getCurrentToken();
     switch (token.type) {
       case "T_IDENTIFIER": {
+        const symbol = this.getCurrentTokenAndRemoveFromList().value;
+        const nextToken = this.getCurrentToken();
+
+        if (nextToken.type === "T_EQUALS") {
+          this.getCurrentTokenAndRemoveFromList();
+          return {
+            type: "VARIABLE_ASSIGNMENT",
+            identifier: symbol,
+            value: this.parseExpression(),
+          };
+        }
+
         return {
           type: "IDENTIFIER",
-          symbol: this.getCurrentTokenAndRemoveFromList().value,
-        } as Identifier;
+          symbol: symbol,
+        };
       }
 
       case "T_NUMERIC_LITERAL": {

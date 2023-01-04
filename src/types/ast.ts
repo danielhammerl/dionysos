@@ -5,7 +5,8 @@ export type NodeType =
   | "VARIABLE_DECLARATION"
   | "NUMERIC_LITERAL"
   | "IDENTIFIER"
-  | "BINARY_EXPRESSION";
+  | "BINARY_EXPRESSION"
+  | "VARIABLE_ASSIGNMENT";
 
 export interface Statement {
   type: NodeType;
@@ -40,4 +41,10 @@ export interface VariableDeclaration extends Statement {
   identifier: string;
   dataType: string;
   value?: Expression;
+}
+
+export interface VariableAssignment extends Expression {
+  type: "VARIABLE_ASSIGNMENT";
+  identifier: string;
+  value: Expression;
 }
