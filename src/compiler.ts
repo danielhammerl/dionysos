@@ -52,6 +52,7 @@ export class Compiler {
     lodash.mapValues(this.registers, () => "FREE");
   }
 
+  // TODO implement algorithm for freeing the right register when one is needed
   private getNextFreeRegister(): string {
     const nextFreeRegister =
       Object.keys(this.registers).find(
