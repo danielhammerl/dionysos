@@ -154,7 +154,7 @@ export class Compiler {
             ErrorLevel.INTERNAL
           );
         }
-
+//TODO data types dont matter yet :D
         const valueStoredAt = value ? this.compileStatement(value) : null;
 
         const variable: Variable = { identifier, dataType, storedAt: valueStoredAt };
