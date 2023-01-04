@@ -137,6 +137,7 @@ export class Compiler {
         } else {
           log("Undefined identifier : " + identifier, ErrorType.E_UNDEFINED, ErrorLevel.ERROR);
         }
+        break;
       }
 
       case "VARIABLE_DECLARATION": {
