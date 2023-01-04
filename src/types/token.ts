@@ -1,13 +1,14 @@
 export type TokenType =
-  | "EOI"
-  | "NUMERIC_LITERAL"
-  | "IDENTIFIER"
-  | "DATA_TYPE"
-  | "EQUALS"
-  | "PLUS"
-  | "MINUS"
-  | "PARENTHESIS_OPEN"
-  | "PARENTHESIS_CLOSE";
+  | "T_EOI"
+  | "T_EOF"
+  | "T_NUMERIC_LITERAL"
+  | "T_IDENTIFIER"
+  | "T_DATA_TYPE"
+  | "T_EQUALS"
+  | "T_PLUS"
+  | "T_MINUS"
+  | "T_PARENTHESIS_OPEN"
+  | "T_PARENTHESIS_CLOSE";
 
 export interface Token {
   type: TokenType;

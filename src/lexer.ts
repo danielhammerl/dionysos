@@ -1,5 +1,6 @@
 import { Token, TokenType } from "./types/token";
 import { isAlphaNumeric, isNumeric } from "./util";
+import { ErrorLevel, ErrorType, log } from "./error";
 
 export const lexicate = (input: string): Token[] => {
   const src = input.split("");
@@ -22,28 +23,28 @@ export const lexicate = (input: string): Token[] => {
       }
 
       if (dataTypeList.includes(multiCharString)) {
-        tokens.push({ type: "DATA_TYPE", value: multiCharString });
+        tokens.push({ type: "T_DATA_TYPE", value: multiCharString });
       } else if (isNumeric(multiCharString)) {
-        tokens.push({ type: "NUMERIC_LITERAL", value: multiCharString });
+        tokens.push({ type: "T_NUMERIC_LITERAL", value: multiCharString });
       } else {
-        tokens.push({ type: "IDENTIFIER", value: multiCharString });
+        tokens.push({ type: "T_IDENTIFIER", value: multiCharString });
       }
     } else {
-      console.error("Unrecognized token: " + char);
-      process.exit(1);
+      return log("Unrecognized Token: " + char, ErrorType.E_UNRECOGNIZED_TOKEN, ErrorLevel.ERROR);
     }
   }
 
+  tokens.push({ type: "T_EOF", value: "T_EOF" });
   return tokens;
 };
 
 const charTokenMap: Partial<Record<string, TokenType>> = {
-  "=": "EQUALS",
-  ";": "EOI",
-  "+": "PLUS",
-  "-": "MINUS",
-  "(": "PARENTHESIS_OPEN",
-  ")": "PARENTHESIS_CLOSE",
+  "=": "T_EQUALS",
+  ";": "T_EOI",
+  "+": "T_PLUS",
+  "-": "T_MINUS",
+  "(": "T_PARENTHESIS_OPEN",
+  ")": "T_PARENTHESIS_CLOSE",
 };
 
 const dataTypeList: string[] = ["uint8", "uint16"];

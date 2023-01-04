@@ -1,0 +1,109 @@
+import {
+  BinaryExpression,
+  Expression,
+  Identifier,
+  NumericLiteral,
+  Program,
+  Statement,
+} from "./types/ast";
+import { Token } from "./types/token";
+import { ErrorLevel, ErrorType, log } from "./error";
+
+export class Parser {
+  private _tokens: Token[] = [];
+  private _statements: Statement[] = [];
+  private getCurrentToken(): Token {
+    return this._tokens[0];
+  }
+
+  private getCurrentTokenAndRemoveFromList(): Token {
+    return this._tokens.shift()!;
+  }
+
+  private addStatement(statement: Statement) {
+    this._statements.push(statement);
+  }
+
+  public parse(input: Token[]): Program {
+    this._tokens = [...input];
+
+    while (this.getCurrentToken().type !== "T_EOF") {
+      if (this.getCurrentToken().type === "T_EOI") {
+        this.getCurrentTokenAndRemoveFromList();
+      } else {
+        this.addStatement(this.parseStatement());
+      }
+    }
+
+    return {
+      type: "PROGRAM",
+      body: this._statements.filter((statement) => statement.type !== "EMPTY"),
+    };
+  }
+
+  private parseStatement(): Statement {
+    return this.parseExpression();
+  }
+
+  private parseExpression(): Expression {
+    return this.parseAdditiveExpression();
+  }
+
+  private parseAdditiveExpression(): Expression {
+    let left: Expression = this.parseMultiplicativeExpression();
+    while (this.getCurrentToken().type === "T_PLUS" || this.getCurrentToken().type == "T_MINUS") {
+      const operator = this.getCurrentTokenAndRemoveFromList().value;
+      const right = this.parseMultiplicativeExpression();
+
+      left = {
+        type: "BINARY_EXPRESSION",
+        left,
+        right,
+        operator,
+      } as BinaryExpression;
+    }
+    return left;
+  }
+  private parseMultiplicativeExpression(): Expression {
+    // no multiplication for now!
+    return this.parsePrimaryExpression();
+  }
+
+  private parsePrimaryExpression(): Expression {
+    const token = this.getCurrentToken();
+    switch (token.type) {
+      case "T_IDENTIFIER": {
+        return {
+          type: "IDENTIFIER",
+          symbol: this.getCurrentTokenAndRemoveFromList().value,
+        } as Identifier;
+      }
+
+      case "T_NUMERIC_LITERAL": {
+        return {
+          type: "NUMERIC_LITERAL",
+          value: BigInt(this.getCurrentTokenAndRemoveFromList().value),
+        } as NumericLiteral;
+      }
+
+      case "T_PARENTHESIS_OPEN": {
+        this.getCurrentTokenAndRemoveFromList();
+        const value = this.parseExpression();
+        const token = this.getCurrentTokenAndRemoveFromList();
+        if (token.type !== "T_PARENTHESIS_CLOSE") {
+          return log(
+            "Expected closing parenthesis, got: " + token.type,
+            ErrorType.E_SYNTAX,
+            ErrorLevel.ERROR
+          );
+        }
+
+        return value;
+      }
+
+      default: {
+        return log("Unknown token: " + token.value, ErrorType.E_SYNTAX, ErrorLevel.ERROR);
+      }
+    }
+  }
+}

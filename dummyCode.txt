@@ -4,4 +4,5 @@
 wow sogar block kommentare gehen
 /
 */
-uint8 x = 30 - (10-9); // entspricht 29
+//uint8 x = 30 - (10-9); // entspricht 29
+30 - (10-9) - (20-19) + 3;
