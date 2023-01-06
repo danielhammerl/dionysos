@@ -31,7 +31,7 @@ export const lexicate = (input: string): Token[] => {
         multiCharString += src.shift();
       }
 
-      if (dataTypeList.includes(multiCharString)) {
+      if ((dataTypeList as unknown as string).includes(multiCharString)) {
         tokens.push({ type: "T_DATA_TYPE", value: multiCharString });
       } else if (isNumeric(multiCharString)) {
         tokens.push({ type: "T_NUMERIC_LITERAL", value: multiCharString });

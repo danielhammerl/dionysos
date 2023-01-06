@@ -2,7 +2,7 @@ import { dataTypeList } from "./internalDataTypes";
 
 export interface Variable {
   identifier: string;
-  dataType: typeof dataTypeList[number];
+  dataType: Omit<typeof dataTypeList[number], "void">;
   storedAt: string | null;
 }
 

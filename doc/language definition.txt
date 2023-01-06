@@ -3,7 +3,7 @@ Datentypen:
 Datentypen:
 uint8: unsigned integer 8 byte (nicht implementiert)
 uint16: unsigned integer 16 byte
-void: nichts (nicht implementiert)
+void: nichts
 
 Variablen:
 
