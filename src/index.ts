@@ -1,33 +1,16 @@
 #!/usr/bin/env ts-node-script
-import { Compiler } from "./compiler";
 require("util").inspect.defaultOptions.depth = null;
-import { preprocessing } from "./preprocessor";
 import fs from "fs";
-import { lexicate } from "./lexer";
-import { Parser } from "./parser";
 import { program } from "commander";
+import { runCompiler } from "./run";
 
-function runCompiler(source: string, output: string, options: any) {
+function run(source: string, output: string, options: any) {
   console.log("Starting dionysos dca compiler ...");
 
   const startTime = performance.now();
 
-  const dummyCode = fs.readFileSync(source, { encoding: "utf-8" });
-
-  const preprocessed = preprocessing(dummyCode);
-
-  const tokens = lexicate(preprocessed);
-
-  const parser = new Parser();
-  const ast = parser.parse(tokens);
-
-  if (options.debug) {
-    console.log(ast);
-  }
-
-  const compiler = new Compiler();
-  const compiled = compiler.compile(ast);
-
+  const input = fs.readFileSync(source, { encoding: "utf-8" });
+  const compiled = runCompiler(input, options);
   fs.writeFileSync(output, compiled, { encoding: "utf-8" });
 
   const endTime = performance.now();
@@ -41,7 +24,7 @@ program
   .argument("[output]", "output file", "./dummyCodeCompiled.dcaasm")
   .option("-d, --debug", "debug mode", false)
   .action((source, output, options) => {
-    runCompiler(source, output, options);
+    run(source, output, options);
   });
 
 program.parse();
