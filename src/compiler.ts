@@ -180,7 +180,7 @@ export class Compiler {
       case "VARIABLE_DECLARATION": {
         const { identifier, dataType, value } = statement as VariableDeclaration;
 
-        if (dataType !== "uint8" && dataType !== "uint16") {
+        if (dataType !== "uint16") {
           log(
             "Unrecognized datatype: " + dataType,
             ErrorType.E_UNRECOGNIZED_TOKEN,

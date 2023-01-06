@@ -1,16 +1,16 @@
 Datentypen:
 
-Aktuell erstmal nur 2 Datentypen:
-uint8: unsigned integer 8 byte
+Datentypen:
+uint8: unsigned integer 8 byte (nicht implementiert)
 uint16: unsigned integer 16 byte
-void: nichts
+void: nichts (nicht implementiert)
 
 Variablen:
 
 Beispiel code für definieren einer variable:
-uint8 x = 88;
+uint16 x = 88;
 
-Methoden:
+Methoden: (nicht implementiert)
 
 void xyz() {
     ...
@@ -30,7 +30,7 @@ block mit /* ... */
 Operatoren:
 + -
 
-conditions:
+conditions: (nicht implementiert)
 
 if(condition) {
     ...

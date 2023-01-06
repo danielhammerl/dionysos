@@ -1,6 +1,6 @@
 export interface Variable {
   identifier: string;
-  dataType: 'uint8' | 'uint16';
+  dataType: 'uint16';
   storedAt: string | null;
 }
 

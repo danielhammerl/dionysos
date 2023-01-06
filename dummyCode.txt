@@ -7,4 +7,4 @@ wow sogar block kommentare gehen
 //uint8 x = 30 - (10-9); // entspricht 29
 uint16 x = 15+15;
 uint16 y = 31;
-uint16 z= x == y;
+uint16 z= x == y - 1;
