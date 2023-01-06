@@ -56,7 +56,25 @@ export class Parser {
   }
 
   private parseExpression(): Expression {
-    return this.parseAdditiveExpression();
+    return this.parseLogicalExpression();
+  }
+
+  private parseLogicalExpression(): Expression {
+    let left: Expression = this.parseAdditiveExpression();
+
+    while (this.getCurrentToken().type === "T_CMP_EQUALS") {
+      this.getCurrentTokenAndRemoveFromList();
+      const right = this.parseAdditiveExpression();
+
+      left = {
+        type: "BINARY_EXPRESSION",
+        left,
+        right,
+        operator: "==",
+      } as BinaryExpression;
+    }
+
+    return left;
   }
 
   private parseVariableDeclaration(): VariableDeclaration {
@@ -106,7 +124,7 @@ export class Parser {
         const symbol = this.getCurrentTokenAndRemoveFromList().value;
         const nextToken = this.getCurrentToken();
 
-        if (nextToken.type === "T_EQUALS") {
+        if (nextToken.type === "T_ASSIGN") {
           this.getCurrentTokenAndRemoveFromList();
           return {
             type: "VARIABLE_ASSIGNMENT",
@@ -144,7 +162,11 @@ export class Parser {
       }
 
       default: {
-        return log("Unknown token: " + token.value, ErrorType.E_SYNTAX, ErrorLevel.INTERNAL);
+        return log(
+          "Unimplemented token in parser: " + token.value,
+          ErrorType.E_NOT_IMPLEMENTED,
+          ErrorLevel.INTERNAL
+        );
       }
     }
   }

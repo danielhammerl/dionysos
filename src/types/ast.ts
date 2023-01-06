@@ -1,5 +1,3 @@
-import { dataTypeList } from "./internalDataTypes";
-
 export type NodeType =
   | "PROGRAM"
   | "VARIABLE_DECLARATION"

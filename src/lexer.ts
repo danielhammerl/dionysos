@@ -10,10 +10,18 @@ export const lexicate = (input: string): Token[] => {
   while (src.length > 0) {
     const char = src.shift()!;
 
-    const tokenTypeFromMap = charTokenMap[char];
     if (isIgnorable(char)) {
-    } else if (tokenTypeFromMap) {
-      tokens.push({ type: tokenTypeFromMap, value: char });
+    } else if (
+      multiCharTokenMap?.[`${char}${src[0]}${src[1]}`] ||
+      multiCharTokenMap?.[`${char}${src[0]}`]
+    ) {
+      const matchLength = multiCharTokenMap?.[`${char}${src[0]}${src[1]}`] ? 3 : 2;
+      const token =
+        multiCharTokenMap?.[`${char}${src[0]}${src[1]}`] || multiCharTokenMap?.[`${char}${src[0]}`];
+
+      tokens.push({ type: token!, value: char + src.splice(0, matchLength - 1).join("") });
+    } else if (charTokenMap[char]) {
+      tokens.push({ type: charTokenMap[char]!, value: char });
     } else if (isAlphaNumeric(char)) {
       // multi char token types
 
@@ -39,15 +47,18 @@ export const lexicate = (input: string): Token[] => {
   return tokens;
 };
 
+const multiCharTokenMap: Partial<Record<string, TokenType>> = {
+  "==": "T_CMP_EQUALS",
+};
+
 const charTokenMap: Partial<Record<string, TokenType>> = {
-  "=": "T_EQUALS",
+  "=": "T_ASSIGN",
   ";": "T_EOI",
   "+": "T_PLUS",
   "-": "T_MINUS",
   "(": "T_PARENTHESIS_OPEN",
   ")": "T_PARENTHESIS_CLOSE",
 };
-
 
 const isIgnorable = (input: string) => {
   return input === " " || input === "\n" || input === "\r" || input === "\t" || input === "\r\n";

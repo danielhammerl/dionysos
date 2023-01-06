@@ -4,4 +4,4 @@ export interface Variable {
   storedAt: string | null;
 }
 
-export type REGISTER_USAGE_TYPE = "FREE" | "LITERAL" | "VARIABLE";
+export type REGISTER_USAGE_TYPE = "FREE" | "LITERAL" | "VARIABLE" | "MANUAL";

@@ -10,11 +10,19 @@ import {
 import { HalfWord, Instructions, Registers } from "@danielhammerl/dca-architecture";
 import * as lodash from "lodash";
 import { ErrorLevel, ErrorType, log } from "./error";
-import { bigIntToHex } from "./util";
+import { bigIntToHex, decToHex } from "./util";
 import { REGISTER_USAGE_TYPE, Variable } from "./types/compiler";
 
 export class Compiler {
   private asmLines: string[] = [];
+  private lineByteCount: number = 5;
+  private getNextFreeAsmLineNumber(): number {
+    return this.asmLines.length * this.lineByteCount;
+  }
+
+  private lines(count: number): number {
+    return count * this.lineByteCount;
+  }
 
   private variableRegistry: Variable[] = [];
 
@@ -24,6 +32,7 @@ export class Compiler {
     } else {
       this.asmLines.push(lines);
     }
+    this.asmLines = this.asmLines.filter((item) => item.length !== 0);
   }
 
   private buildAsmLine(
@@ -53,7 +62,7 @@ export class Compiler {
   }
 
   // TODO implement algorithm for freeing the right register when one is needed
-  private getNextFreeRegister(): string {
+  private getNextFreeRegister(newState: REGISTER_USAGE_TYPE = "FREE"): string {
     const nextFreeRegister =
       Object.keys(this.registers).find(
         (key) => this.registers[key as typeof Registers[number]] === "FREE"
@@ -63,6 +72,8 @@ export class Compiler {
       // handle this
       log("No free register!", ErrorType.E_NOT_IMPLEMENTED, ErrorLevel.INTERNAL);
     }
+
+    this.registers[nextFreeRegister as typeof Registers[number]] = newState;
 
     return nextFreeRegister;
   }
@@ -92,9 +103,31 @@ export class Compiler {
         this.registers[right as typeof Registers[number]] = "FREE";
         return left;
       }
+      // evtl einfacher das nicht mit CJUMP zu lösen sondern einen CMP operator einzuführen
+      case "==": {
+        const resultRegister = this.getNextFreeRegister("MANUAL");
+        this.registers[resultRegister as typeof Registers[number]] = "LITERAL";
+        this.buildAsmLine("MOV", left, resultRegister);
+        this.buildAsmLine("SUB", resultRegister, right);
+        // result register now contains 0 for truthy values or non zero for falsy values
+        const tempRegisterForOriginalResult = this.getNextFreeRegister("MANUAL");
+        this.buildAsmLine("MOV", resultRegister, tempRegisterForOriginalResult);
+        this.buildAsmLine("SET", resultRegister, decToHex(1));
+        const registerForJumpDestination = this.getNextFreeRegister("MANUAL");
+        this.buildAsmLine(
+          "SET",
+          registerForJumpDestination,
+          decToHex(this.getNextFreeAsmLineNumber() + this.lines(3))
+        );
+        this.buildAsmLine("CJUMP", registerForJumpDestination, tempRegisterForOriginalResult);
+        this.buildAsmLine("SET", resultRegister, decToHex(0));
+        this.registers[registerForJumpDestination as typeof Registers[number]] = "FREE";
+        this.registers[tempRegisterForOriginalResult as typeof Registers[number]] = "FREE";
+        return resultRegister;
+      }
       default: {
         log(
-          "Not implemented binary expression operator value",
+          "Not implemented binary expression operator " + statement.operator,
           ErrorType.E_NOT_IMPLEMENTED,
           ErrorLevel.INTERNAL
         );
@@ -130,9 +163,8 @@ export class Compiler {
           if (variable.storedAt !== null) {
             return variable.storedAt;
           } else {
-            const registerToUse = this.getNextFreeRegister();
+            const registerToUse = this.getNextFreeRegister("VARIABLE");
             this.buildAsmLine("SET", registerToUse, "0x0");
-            this.registers[registerToUse as typeof Registers[number]] = "VARIABLE";
 
             return registerToUse;
           }
@@ -155,7 +187,7 @@ export class Compiler {
             ErrorLevel.INTERNAL
           );
         }
-//TODO data types dont matter yet :D
+        //TODO data types dont matter yet :D
         const valueStoredAt = value ? this.compileStatement(value) : null;
 
         const variable: Variable = { identifier, dataType, storedAt: valueStoredAt };
