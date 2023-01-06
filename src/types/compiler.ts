@@ -1,6 +1,8 @@
+import { dataTypeList } from "./internalDataTypes";
+
 export interface Variable {
   identifier: string;
-  dataType: 'uint16';
+  dataType: typeof dataTypeList[number];
   storedAt: string | null;
 }
 
