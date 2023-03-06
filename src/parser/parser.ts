@@ -7,9 +7,9 @@ import {
   Statement,
   VariableAssignment,
   VariableDeclaration,
-} from "./types/ast";
-import { Token } from "./types/token";
-import { ErrorLevel, ErrorType, log } from "./error";
+} from "../types/ast";
+import { Token } from "../types/token";
+import { ErrorLevel, ErrorType, log } from "../utils/log";
 
 export class Parser {
   private _tokens: Token[] = [];

@@ -1,4 +1,4 @@
-import { dataTypeList } from "./internalDataTypes";
+import { dataTypeList } from "../constants/dataTypes";
 
 export interface Variable {
   identifier: string;

@@ -6,12 +6,12 @@ import {
   Statement,
   VariableAssignment,
   VariableDeclaration,
-} from "./types/ast";
+} from "../types/ast";
 import { HalfWord, Instructions, Registers } from "@danielhammerl/dca-architecture";
 import * as lodash from "lodash";
-import { ErrorLevel, ErrorType, log } from "./error";
-import { bigIntToHex, decToHex } from "./util";
-import { REGISTER_USAGE_TYPE, Variable } from "./types/compiler";
+import { ErrorLevel, ErrorType, log } from "../utils/log";
+import { bigIntToHex, decToHex } from "../utils/util";
+import { REGISTER_USAGE_TYPE, Variable } from "./types";
 
 export class Compiler {
   private asmLines: string[] = [];

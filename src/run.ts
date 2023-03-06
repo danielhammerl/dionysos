@@ -1,7 +1,7 @@
-import { preprocessing } from "./preprocessor";
-import { lexicate } from "./lexer";
-import { Parser } from "./parser";
-import { Compiler } from "./compiler";
+import { preprocessing } from "./preprocessor/preprocessor";
+import { lexicate } from "./lexer/lexer";
+import { Parser } from "./parser/parser";
+import { Compiler } from "./compiler/compiler";
 
 export function runCompiler(source: string, options?: any): string {
   const preprocessed = preprocessing(source);

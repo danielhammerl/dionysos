@@ -1,7 +1,7 @@
-import { Token, TokenType } from "./types/token";
-import { isAlphaNumeric, isNumeric } from "./util";
-import { ErrorLevel, ErrorType, log } from "./error";
-import { dataTypeList } from "./types/internalDataTypes";
+import { Token, TokenType } from "../types/token";
+import { isAlphaNumeric, isNumeric } from "../utils/util";
+import { ErrorLevel, ErrorType, log } from "../utils/log";
+import { dataTypeList } from "../constants/dataTypes";
 
 export const lexicate = (input: string): Token[] => {
   const src = input.split("");
