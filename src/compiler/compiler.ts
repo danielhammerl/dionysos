@@ -131,6 +131,7 @@ function compileStatement(statement: Statement): RegisterName | null {
           return variable.storedAt;
         } else {
           const registerToUse = getNextFreeRegister("VARIABLE");
+          // default value for undefined variables is 0
           buildAsmLine("SET", registerToUse, "0x0");
 
           return registerToUse;

@@ -1,41 +1,21 @@
 Datentypen:
 
-Datentypen:
-uint8: unsigned integer 8 byte (nicht implementiert)
 uint16: unsigned integer 16 byte
 void: nichts
 
 Variablen:
 
-Beispiel code für definieren einer variable:
+Beispiel code für Definieren einer variable:
 uint16 x = 88;
-
-Methoden: (nicht implementiert)
-
-void xyz() {
-    ...
-}
-
-uint16 xyz(uint16 param) {
-    ...
-    return param;
-}
-
-xyz();
+uint16 y; // Variable kann auch nur deklariert werden ohne wert, Wert ist intern dann 0
 
 Kommentare:
 lines mit // zeichen
 block mit /* ... */
 
-Operatoren:
-+ -
+Arithmetische Operatoren:
++: Addieren
+-: Subtrahieren
 
-conditions: (nicht implementiert)
-
-if(condition) {
-    ...
-} else if(condition) {
-
-} else {
-
-}
+Logische Operatoren
+==: Vergleichen, wenn links und rechts den identischen Wert haben wird ein uint mit wert 1 zurückgegeben, ansonsten 0
