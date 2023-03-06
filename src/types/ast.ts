@@ -21,6 +21,10 @@ export interface Program extends Statement {
   body: Statement[];
 }
 
+/**
+ * Binary Expression is an expression with one operator and two arguments, a left side and a right side argument
+ * e.g. a == b, a + b, a - b
+ */
 export interface BinaryExpression extends Expression {
   type: "BINARY_EXPRESSION";
   left: Expression;
