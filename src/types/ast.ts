@@ -4,18 +4,23 @@ export type NodeType =
   | "NUMERIC_LITERAL"
   | "IDENTIFIER"
   | "BINARY_EXPRESSION"
-  | "VARIABLE_ASSIGNMENT";
+  | "VARIABLE_ASSIGNMENT"
+  | "FUNCTION_DEFINITION";
+
+/*
+ Difference between Statement and Expression: Statements do something, expressions are evaluated into a value
+ */
 
 export interface Statement {
   type: NodeType;
 }
+export interface Expression extends Statement {}
 
 export interface Program extends Statement {
   type: "PROGRAM";
   body: Statement[];
 }
 
-export interface Expression extends Statement {}
 
 export interface BinaryExpression extends Expression {
   type: "BINARY_EXPRESSION";
@@ -45,4 +50,11 @@ export interface VariableAssignment extends Expression {
   type: "VARIABLE_ASSIGNMENT";
   identifier: string;
   value: Expression;
+}
+
+export interface FunctionDefinition extends Statement {
+  type: "FUNCTION_DEFINITION";
+  identifier: string;
+  // parameters: VariableDeclaration[]; ??
+  body: Statement[];
 }
