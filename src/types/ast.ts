@@ -55,7 +55,7 @@ export interface VariableAssignment extends Expression {
   value: Expression;
 }
 
-export interface FunctionDefinition extends Statement {
+export interface FunctionDefinition {
   type: "FUNCTION_DEFINITION";
   identifier: string;
   // parameters: VariableDeclaration[]; ??
