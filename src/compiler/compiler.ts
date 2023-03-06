@@ -7,7 +7,12 @@ import {
   VariableAssignment,
   VariableDeclaration,
 } from "../types/ast";
-import { HalfWord, Instructions, Registers } from "@danielhammerl/dca-architecture";
+import {
+  HalfWord,
+  INSTRUCTION_BYTE_LENGTH,
+  Instructions,
+  Registers,
+} from "@danielhammerl/dca-architecture";
 import * as lodash from "lodash";
 import { ErrorLevel, ErrorType, log } from "../utils/log";
 import { bigIntToHex, decToHex } from "../utils/util";
@@ -15,13 +20,12 @@ import { REGISTER_USAGE_TYPE, Variable } from "./types";
 
 export class Compiler {
   private asmLines: string[] = [];
-  private lineByteCount: number = 5;
   private getNextFreeAsmLineNumber(): number {
-    return this.asmLines.length * this.lineByteCount;
+    return this.asmLines.length * INSTRUCTION_BYTE_LENGTH;
   }
 
-  private lines(count: number): number {
-    return count * this.lineByteCount;
+  private getBytesPerLine(count: number): number {
+    return count * INSTRUCTION_BYTE_LENGTH;
   }
 
   private variableRegistry: Variable[] = [];
@@ -117,7 +121,7 @@ export class Compiler {
         this.buildAsmLine(
           "SET",
           registerForJumpDestination,
-          decToHex(this.getNextFreeAsmLineNumber() + this.lines(3))
+          decToHex(this.getNextFreeAsmLineNumber() + this.getBytesPerLine(3))
         );
         this.buildAsmLine("CJUMP", registerForJumpDestination, tempRegisterForOriginalResult);
         this.buildAsmLine("SET", resultRegister, decToHex(0));

@@ -21,7 +21,6 @@ export interface Program extends Statement {
   body: Statement[];
 }
 
-
 export interface BinaryExpression extends Expression {
   type: "BINARY_EXPRESSION";
   left: Expression;

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "ts-node ./src/index.ts --debug",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/danielhammerl/dionysos#readme",
   "dependencies": {
-    "@danielhammerl/dca-architecture": "^0.5.1",
+    "@danielhammerl/dca-architecture": "^0.6.0",
     "commander": "^9.4.1",
     "lodash": "^4.17.21",
     "ts-node": "^10.9.1"

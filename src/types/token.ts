@@ -1,7 +1,7 @@
 export type TokenType =
   | "T_EOI" // ;
   | "T_EOF" // eof
-  | "T_NUMERIC_LITERAL"  // number
+  | "T_NUMERIC_LITERAL" // number
   | "T_IDENTIFIER" // string
   | "T_DATA_TYPE" // data type
   | "T_ASSIGN" // =
