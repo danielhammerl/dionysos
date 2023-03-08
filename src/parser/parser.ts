@@ -12,172 +12,166 @@ import {
 import { Token } from "../types/token";
 import { ErrorLevel, ErrorType, log } from "../utils/log";
 
-export class Parser {
-  private _tokens: Token[] = [];
-  private _statements: Statement[] = [];
-  private _functions: FunctionDefinition[] = [];
-  private getCurrentToken(): Token {
-    return this._tokens[0];
-  }
+let _tokens: Token[] = [];
+const _statements: Statement[] = [];
+const _functions: FunctionDefinition[] = [];
+const getCurrentToken = (): Token => {
+  return _tokens[0];
+};
 
-  private getCurrentTokenAndRemoveFromList(): Token {
-    return this._tokens.shift()!;
-  }
+const getCurrentTokenAndRemoveFromList = (): Token => {
+  return _tokens.shift()!;
+};
 
-  private addStatement(statement: Statement) {
-    this._statements.push(statement);
-  }
+const addStatement = (statement: Statement) => {
+  _statements.push(statement);
+};
 
-  public parse(input: Token[]): Program {
-    this._tokens = [...input];
+export const parse = (input: Token[]): Program => {
+  _tokens = [...input];
 
-    while (this.getCurrentToken().type !== "T_EOF") {
-      if (this.getCurrentToken().type === "T_EOI") {
-        this.getCurrentTokenAndRemoveFromList();
-      } else {
-        this.parseStatement();
-      }
+  while (getCurrentToken().type !== "T_EOF") {
+    if (getCurrentToken().type === "T_EOI") {
+      getCurrentTokenAndRemoveFromList();
+    } else {
+      parseStatement();
     }
+  }
 
-    return {
-      type: "PROGRAM",
-      body: this._statements,
+  return {
+    type: "PROGRAM",
+    body: _statements,
+  };
+};
+
+const parseStatement = (): void => {
+  const token = getCurrentToken();
+  switch (token.type) {
+    case "T_DATA_TYPE": {
+      parseVariableDeclaration();
+      break;
+    }
+    default: {
+      parseExpression();
+      break;
+    }
+  }
+};
+
+const parseExpression = (): Expression => {
+  return parseLogicalExpression();
+};
+
+const parseLogicalExpression = (): Expression => {
+  let left: Expression = parseAdditiveExpression();
+
+  while (getCurrentToken().type === "T_CMP_EQUALS") {
+    getCurrentTokenAndRemoveFromList();
+    const right = parseAdditiveExpression();
+
+    left = {
+      type: "BINARY_EXPRESSION",
+      left,
+      right,
+      operator: "==",
+    } as BinaryExpression;
+  }
+
+  return left;
+};
+
+const parseVariableDeclaration = (): void => {
+  const dataTypeToken = getCurrentTokenAndRemoveFromList();
+  const identifierToken = getCurrentTokenAndRemoveFromList();
+  if (identifierToken.type !== "T_IDENTIFIER") {
+    log("Expected identifier, got " + identifierToken.value, ErrorType.E_SYNTAX, ErrorLevel.ERROR);
+  }
+  const nextToken = getCurrentTokenAndRemoveFromList();
+
+  if (nextToken.type === "T_EOI" || nextToken.type === "T_ASSIGN") {
+    const variableDeclaration: VariableDeclaration = {
+      type: "VARIABLE_DECLARATION",
+      identifier: identifierToken.value,
+      value: nextToken.type === "T_EOI" ? undefined : parseExpression(),
+      dataType: dataTypeToken.value,
     };
+
+    addStatement(variableDeclaration);
+  } else if (nextToken.type === "T_PARENTHESIS_OPEN") {
+    console.log("Function definition");
   }
+};
 
-  private parseStatement(): void {
-    const token = this.getCurrentToken();
-    switch (token.type) {
-      case "T_DATA_TYPE": {
-        this.parseVariableDeclaration();
-        break;
-      }
-      default: {
-        this.parseExpression();
-        break;
-      }
-    }
+const parseAdditiveExpression = (): Expression => {
+  let left: Expression = parseMultiplicativeExpression();
+  while (getCurrentToken().type === "T_PLUS" || getCurrentToken().type == "T_MINUS") {
+    const operator = getCurrentTokenAndRemoveFromList().value;
+    const right = parseMultiplicativeExpression();
+
+    left = {
+      type: "BINARY_EXPRESSION",
+      left,
+      right,
+      operator,
+    } as BinaryExpression;
   }
+  return left;
+};
+const parseMultiplicativeExpression = (): Expression => {
+  // no multiplication for now!
+  return parsePrimaryExpression();
+};
 
-  private parseExpression(): Expression {
-    return this.parseLogicalExpression();
-  }
+const parsePrimaryExpression = (): Expression | Identifier | VariableAssignment => {
+  const token = getCurrentToken();
+  switch (token.type) {
+    case "T_IDENTIFIER": {
+      const symbol = getCurrentTokenAndRemoveFromList().value;
+      const nextToken = getCurrentToken();
 
-  private parseLogicalExpression(): Expression {
-    let left: Expression = this.parseAdditiveExpression();
-
-    while (this.getCurrentToken().type === "T_CMP_EQUALS") {
-      this.getCurrentTokenAndRemoveFromList();
-      const right = this.parseAdditiveExpression();
-
-      left = {
-        type: "BINARY_EXPRESSION",
-        left,
-        right,
-        operator: "==",
-      } as BinaryExpression;
-    }
-
-    return left;
-  }
-
-  private parseVariableDeclaration(): void {
-    const dataTypeToken = this.getCurrentTokenAndRemoveFromList();
-    const identifierToken = this.getCurrentTokenAndRemoveFromList();
-    if (identifierToken.type !== "T_IDENTIFIER") {
-      log(
-        "Expected identifier, got " + identifierToken.value,
-        ErrorType.E_SYNTAX,
-        ErrorLevel.ERROR
-      );
-    }
-    const nextToken = this.getCurrentTokenAndRemoveFromList();
-
-    if (nextToken.type === "T_EOI" || nextToken.type === "T_ASSIGN") {
-      const variableDeclaration: VariableDeclaration = {
-        type: "VARIABLE_DECLARATION",
-        identifier: identifierToken.value,
-        value: nextToken.type === "T_EOI" ? undefined : this.parseExpression(),
-        dataType: dataTypeToken.value,
-      };
-
-      this.addStatement(variableDeclaration);
-    } else if(nextToken.type === "T_PARENTHESIS_OPEN") {
-      console.log("Function definition");
-    }
-  }
-
-  private parseAdditiveExpression(): Expression {
-    let left: Expression = this.parseMultiplicativeExpression();
-    while (this.getCurrentToken().type === "T_PLUS" || this.getCurrentToken().type == "T_MINUS") {
-      const operator = this.getCurrentTokenAndRemoveFromList().value;
-      const right = this.parseMultiplicativeExpression();
-
-      left = {
-        type: "BINARY_EXPRESSION",
-        left,
-        right,
-        operator,
-      } as BinaryExpression;
-    }
-    return left;
-  }
-  private parseMultiplicativeExpression(): Expression {
-    // no multiplication for now!
-    return this.parsePrimaryExpression();
-  }
-
-  private parsePrimaryExpression(): Expression | Identifier | VariableAssignment {
-    const token = this.getCurrentToken();
-    switch (token.type) {
-      case "T_IDENTIFIER": {
-        const symbol = this.getCurrentTokenAndRemoveFromList().value;
-        const nextToken = this.getCurrentToken();
-
-        if (nextToken.type === "T_ASSIGN") {
-          this.getCurrentTokenAndRemoveFromList();
-          return {
-            type: "VARIABLE_ASSIGNMENT",
-            identifier: symbol,
-            value: this.parseExpression(),
-          };
-        }
-
+      if (nextToken.type === "T_ASSIGN") {
+        getCurrentTokenAndRemoveFromList();
         return {
-          type: "IDENTIFIER",
-          symbol: symbol,
+          type: "VARIABLE_ASSIGNMENT",
+          identifier: symbol,
+          value: parseExpression(),
         };
       }
 
-      case "T_NUMERIC_LITERAL": {
-        return {
-          type: "NUMERIC_LITERAL",
-          value: BigInt(this.getCurrentTokenAndRemoveFromList().value),
-        } as NumericLiteral;
-      }
+      return {
+        type: "IDENTIFIER",
+        symbol: symbol,
+      };
+    }
 
-      case "T_PARENTHESIS_OPEN": {
-        this.getCurrentTokenAndRemoveFromList();
-        const value = this.parseExpression();
-        const token = this.getCurrentTokenAndRemoveFromList();
-        if (token.type !== "T_PARENTHESIS_CLOSE") {
-          return log(
-            "Expected closing parenthesis, got: " + token.type,
-            ErrorType.E_SYNTAX,
-            ErrorLevel.ERROR
-          );
-        }
+    case "T_NUMERIC_LITERAL": {
+      return {
+        type: "NUMERIC_LITERAL",
+        value: BigInt(getCurrentTokenAndRemoveFromList().value),
+      } as NumericLiteral;
+    }
 
-        return value;
-      }
-
-      default: {
+    case "T_PARENTHESIS_OPEN": {
+      getCurrentTokenAndRemoveFromList();
+      const value = parseExpression();
+      const token = getCurrentTokenAndRemoveFromList();
+      if (token.type !== "T_PARENTHESIS_CLOSE") {
         return log(
-          "Unimplemented token in parser: " + token.value,
-          ErrorType.E_NOT_IMPLEMENTED,
-          ErrorLevel.INTERNAL
+          "Expected closing parenthesis, got: " + token.type,
+          ErrorType.E_SYNTAX,
+          ErrorLevel.ERROR
         );
       }
+
+      return value;
+    }
+
+    default: {
+      return log(
+        "Unimplemented token in parser: " + token.value,
+        ErrorType.E_NOT_IMPLEMENTED,
+        ErrorLevel.INTERNAL
+      );
     }
   }
-}
+};
