@@ -12,15 +12,15 @@ import {
 import { Token } from "../types/token";
 import { ErrorLevel, ErrorType, log } from "../utils/log";
 
-let _tokens: Token[] = [];
+const tokensToParse: Token[] = [];
 const _statements: Statement[] = [];
 const _functions: FunctionDefinition[] = [];
 const getCurrentToken = (): Token => {
-  return _tokens[0];
+  return tokensToParse[0];
 };
 
 const getCurrentTokenAndRemoveFromList = (): Token => {
-  return _tokens.shift()!;
+  return tokensToParse.shift()!;
 };
 
 const addStatement = (statement: Statement) => {
@@ -28,7 +28,7 @@ const addStatement = (statement: Statement) => {
 };
 
 export const parse = (input: Token[]): Program => {
-  _tokens = [...input];
+  input.forEach((item) => tokensToParse.push(item));
 
   while (getCurrentToken().type !== "T_EOF") {
     if (getCurrentToken().type === "T_EOI") {
