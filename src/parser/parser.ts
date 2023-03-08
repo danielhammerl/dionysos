@@ -1,6 +1,7 @@
 import {
   BinaryExpression,
   Expression,
+  FunctionDefinition,
   Identifier,
   NumericLiteral,
   Program,
@@ -14,6 +15,7 @@ import { ErrorLevel, ErrorType, log } from "../utils/log";
 export class Parser {
   private _tokens: Token[] = [];
   private _statements: Statement[] = [];
+  private _functions: FunctionDefinition[] = [];
   private getCurrentToken(): Token {
     return this._tokens[0];
   }
@@ -33,7 +35,7 @@ export class Parser {
       if (this.getCurrentToken().type === "T_EOI") {
         this.getCurrentTokenAndRemoveFromList();
       } else {
-        this.addStatement(this.parseStatement());
+        this.parseStatement();
       }
     }
 
@@ -43,14 +45,16 @@ export class Parser {
     };
   }
 
-  private parseStatement(): Statement {
+  private parseStatement(): void {
     const token = this.getCurrentToken();
     switch (token.type) {
       case "T_DATA_TYPE": {
-        return this.parseVariableDeclaration();
+        this.parseVariableDeclaration();
+        break;
       }
       default: {
-        return this.parseExpression();
+        this.parseExpression();
+        break;
       }
     }
   }
@@ -77,7 +81,7 @@ export class Parser {
     return left;
   }
 
-  private parseVariableDeclaration(): VariableDeclaration {
+  private parseVariableDeclaration(): void {
     const dataTypeToken = this.getCurrentTokenAndRemoveFromList();
     const identifierToken = this.getCurrentTokenAndRemoveFromList();
     if (identifierToken.type !== "T_IDENTIFIER") {
@@ -89,12 +93,18 @@ export class Parser {
     }
     const nextToken = this.getCurrentTokenAndRemoveFromList();
 
-    return {
-      type: "VARIABLE_DECLARATION",
-      identifier: identifierToken.value,
-      value: nextToken.type === "T_EOI" ? undefined : this.parseExpression(),
-      dataType: dataTypeToken.value,
-    };
+    if (nextToken.type === "T_EOI" || nextToken.type === "T_ASSIGN") {
+      const variableDeclaration: VariableDeclaration = {
+        type: "VARIABLE_DECLARATION",
+        identifier: identifierToken.value,
+        value: nextToken.type === "T_EOI" ? undefined : this.parseExpression(),
+        dataType: dataTypeToken.value,
+      };
+
+      this.addStatement(variableDeclaration);
+    } else if(nextToken.type === "T_PARENTHESIS_OPEN") {
+      console.log("Function definition");
+    }
   }
 
   private parseAdditiveExpression(): Expression {
