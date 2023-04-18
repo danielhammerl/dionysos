@@ -69,8 +69,7 @@ function evaluateBinaryExpression(statement: BinaryExpression): RegisterName {
     }
     // evtl einfacher das nicht mit CJUMP zu lösen, sondern einen CMP operator einzuführen
     case "==": {
-      const resultRegister = getNextFreeRegister("MANUAL");
-      assignRegister(resultRegister, "LITERAL");
+      const resultRegister = getNextFreeRegister("LITERAL");
       buildAsmLine("MOV", left, resultRegister);
       buildAsmLine("SUB", resultRegister, right);
       // result register now contains 0 for truthy values or non zero for falsy values
