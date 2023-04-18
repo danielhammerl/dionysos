@@ -1,16 +1,14 @@
 import {
   BinaryExpression,
-  Identifier,
-  NumericLiteral,
+  Expression,
+  IdentifierExpression,
+  NumericLiteralExpression,
   Program,
   Statement,
-  VariableAssignment,
-  VariableDeclaration,
+  VariableAssignmentExpression,
+  VariableDefinitionStatement,
 } from "../types/ast";
-import {
-  HalfWord,
-  Instructions,
-} from "@danielhammerl/dca-architecture";
+import { HalfWord, Instructions } from "@danielhammerl/dca-architecture";
 import { ErrorLevel, ErrorType, log } from "../utils/log";
 import { bigIntToHex, decToHex } from "../utils/util";
 import { Variable } from "./types";
@@ -102,29 +100,71 @@ function evaluateBinaryExpression(statement: BinaryExpression): RegisterName {
 }
 
 /**
- * this method compiles a statement and if the statement is an expression it returns the register
+ * this method compiles a statement
+ * if the statement is an expression it returns the register
  * in which the result is stored, otherwise it returns null
  */
 function compileStatement(statement: Statement): RegisterName | null {
-  switch (statement.type) {
-    case "BINARY_EXPRESSION": {
-      return evaluateBinaryExpression(statement as BinaryExpression);
+  switch (statement.statementType) {
+    case "VARIABLE_DEFINITION_STATEMENT": {
+      const { identifier, dataType, value } = statement as VariableDefinitionStatement;
+
+      if (dataType !== "uint16") {
+        log(
+          "Unrecognized datatype: " + dataType,
+          ErrorType.E_UNRECOGNIZED_TOKEN,
+          ErrorLevel.INTERNAL
+        );
+      }
+
+      const valueStoredAt = value ? compileStatement(value) : null;
+
+      const variable: Variable = {
+        identifier: identifier.symbol,
+        dataType,
+        storedAt: valueStoredAt,
+      };
+      if (valueStoredAt) {
+        assignRegister(valueStoredAt, "VARIABLE");
+      }
+      variableRegistry.push(variable);
+      return variable.storedAt;
     }
 
-    case "NUMERIC_LITERAL": {
+    case "EXPRESSION_STATEMENT": {
+      return compileExpression(statement as Expression);
+    }
+
+    default: {
+      log(
+        "Not implemented statement " + statement.statementType,
+        ErrorType.E_NOT_IMPLEMENTED,
+        ErrorLevel.INTERNAL
+      );
+    }
+  }
+}
+
+function compileExpression(expression: Expression): RegisterName | null {
+  switch (expression.expressionType) {
+    case "BINARY_EXPRESSION": {
+      return evaluateBinaryExpression(expression as BinaryExpression);
+    }
+
+    case "NUMBER_LITERAL_EXPRESSION": {
       const registerToUse = getNextFreeRegister("LITERAL");
 
       buildAsmLine(
         "SET",
         registerToUse,
-        bigIntToHex((statement as NumericLiteral).value.valueOf())
+        bigIntToHex((expression as NumericLiteralExpression).value.valueOf())
       );
 
       return registerToUse;
     }
 
-    case "IDENTIFIER": {
-      const identifier = (statement as Identifier).symbol;
+    case "IDENTIFIER_LITERAL_EXPRESSION": {
+      const identifier = (expression as IdentifierExpression).symbol;
       const variable = variableRegistry.find((variable) => variable.identifier === identifier);
       if (variable) {
         if (variable.storedAt !== null) {
@@ -141,30 +181,9 @@ function compileStatement(statement: Statement): RegisterName | null {
       }
     }
 
-    case "VARIABLE_DECLARATION": {
-      const { identifier, dataType, value } = statement as VariableDeclaration;
-
-      if (dataType !== "uint16") {
-        log(
-          "Unrecognized datatype: " + dataType,
-          ErrorType.E_UNRECOGNIZED_TOKEN,
-          ErrorLevel.INTERNAL
-        );
-      }
-
-      const valueStoredAt = value ? compileStatement(value) : null;
-
-      const variable: Variable = { identifier, dataType, storedAt: valueStoredAt };
-      if (valueStoredAt) {
-        assignRegister(valueStoredAt, "VARIABLE");
-      }
-      variableRegistry.push(variable);
-      return variable.storedAt;
-    }
-
-    case "VARIABLE_ASSIGNMENT": {
-      const { identifier, value } = statement as VariableAssignment;
-      const variable = variableRegistry.find((item) => item.identifier === identifier);
+    case "VARIABLE_ASSIGNMENT_EXPRESSION": {
+      const { identifier, value } = expression as VariableAssignmentExpression;
+      const variable = variableRegistry.find((item) => item.identifier === identifier.symbol);
       if (!variable) {
         return log("Undefined variable " + variable, ErrorType.E_UNDEFINED, ErrorLevel.ERROR);
       }
@@ -179,8 +198,8 @@ function compileStatement(statement: Statement): RegisterName | null {
     }
 
     default: {
-      log(
-        "Not implemented statement " + statement.type,
+      return log(
+        "Not implemented expression " + expression.expressionType,
         ErrorType.E_NOT_IMPLEMENTED,
         ErrorLevel.INTERNAL
       );

@@ -1,11 +1,15 @@
-export type NodeType =
-  | "PROGRAM"
-  | "VARIABLE_DECLARATION"
-  | "NUMERIC_LITERAL"
-  | "IDENTIFIER"
-  | "BINARY_EXPRESSION"
-  | "VARIABLE_ASSIGNMENT"
-  | "FUNCTION_DEFINITION";
+import { DataType } from "../constants/dataTypes";
+
+export type StatementType =
+  | "VARIABLE_DEFINITION_STATEMENT"
+  | "FUNCTION_DEFINITION_STATEMENT" // not yet implemented
+  | "EXPRESSION_STATEMENT";
+export type ExpressionType =
+  | "STRING_LITERAL_EXPRESSION" // not yet implemented
+  | "NUMBER_LITERAL_EXPRESSION"
+  | "IDENTIFIER_LITERAL_EXPRESSION"
+  | "VARIABLE_ASSIGNMENT_EXPRESSION"
+  | "BINARY_EXPRESSION";
 
 /*
  Difference between Statement and Expression: Statements do something, expressions are evaluated into a value
@@ -13,53 +17,52 @@ export type NodeType =
  expressions are for example 4+8, a() || b(), y = (4*4+getNumber()) - 1
  */
 
-export interface Statement {
-  type: NodeType;
-}
-export interface Expression extends Statement {}
+export type Statement<T extends StatementType = StatementType> = {
+  statementType: T;
+};
 
-export interface Program {
+export type Expression<T extends ExpressionType = ExpressionType> = Statement<"EXPRESSION_STATEMENT"> & {
+  expressionType: T;
+};
+
+export type Program = {
   type: "PROGRAM";
   body: Statement[];
-}
+};
+
+export type BinaryExpressionOperator = string; // TODO specify this
 
 /**
  * Binary Expression is an expression with one operator and two arguments, a left side and a right side argument
  * e.g. a == b, a + b, a - b
  */
-export interface BinaryExpression extends Expression {
-  type: "BINARY_EXPRESSION";
+export type BinaryExpression = Expression<"BINARY_EXPRESSION"> & {
   left: Expression;
   right: Expression;
-  operator: string;
-}
+  operator: BinaryExpressionOperator;
+};
 
-export interface Identifier extends Expression {
-  type: "IDENTIFIER";
+export type IdentifierExpression = Expression<"IDENTIFIER_LITERAL_EXPRESSION"> & {
   symbol: string;
-}
+};
 
-export interface NumericLiteral extends Expression {
-  type: "NUMERIC_LITERAL";
+export type NumericLiteralExpression = Expression<"NUMBER_LITERAL_EXPRESSION"> & {
   value: BigInt;
-}
+};
 
-export interface VariableDeclaration extends Statement {
-  type: "VARIABLE_DECLARATION";
-  identifier: string;
-  dataType: string;
-  value?: Expression;
-}
-
-export interface VariableAssignment extends Expression {
-  type: "VARIABLE_ASSIGNMENT";
-  identifier: string;
+export type VariableDefinitionStatement = Statement<"VARIABLE_DEFINITION_STATEMENT"> & {
+  identifier: IdentifierExpression;
   value: Expression;
-}
+  dataType: DataType;
+};
 
-export interface FunctionDefinition {
-  type: "FUNCTION_DEFINITION";
-  identifier: string;
+export type VariableAssignmentExpression = Expression<"VARIABLE_ASSIGNMENT_EXPRESSION"> & {
+  identifier: IdentifierExpression;
+  value: Expression;
+};
+
+export type FunctionDefinitionStatement = Statement<"FUNCTION_DEFINITION_STATEMENT"> & {
+  identifier: IdentifierExpression;
   // parameters: VariableDeclaration[]; ??
   body: Statement[];
-}
+};

@@ -1,20 +1,20 @@
 import {
   BinaryExpression,
   Expression,
-  FunctionDefinition,
-  Identifier,
-  NumericLiteral,
+  IdentifierExpression,
+  NumericLiteralExpression,
   Program,
   Statement,
-  VariableAssignment,
-  VariableDeclaration,
+  VariableAssignmentExpression,
+  VariableDefinitionStatement,
 } from "../types/ast";
 import { Token } from "../types/token";
 import { ErrorLevel, ErrorType, log } from "../utils/log";
+import { DataType } from "../constants/dataTypes";
 
 const tokensToParse: Token[] = [];
 const _statements: Statement[] = [];
-const _functions: FunctionDefinition[] = [];
+//const _functions: FunctionDefinition[] = [];
 const getCurrentToken = (): Token => {
   return tokensToParse[0];
 };
@@ -48,16 +48,62 @@ const parseStatement = (): void => {
   const token = getCurrentToken();
   switch (token.type) {
     case "T_DATA_TYPE": {
-      parseVariableDeclaration();
-      break;
+      // here we have to add function definitions
+      const dataType = getCurrentTokenAndRemoveFromList().value as DataType;
+      const identifier: IdentifierExpression = {
+        statementType: "EXPRESSION_STATEMENT",
+        expressionType: "IDENTIFIER_LITERAL_EXPRESSION",
+        symbol: getCurrentTokenAndRemoveFromList().value,
+      };
+
+      const nextToken = getCurrentTokenAndRemoveFromList();
+      if (nextToken.type === "T_PARENTHESIS_OPEN") {
+        // function
+        break;
+      } else if (nextToken.type === "T_ASSIGN") {
+        // variable
+        if (dataType === "uint16") {
+          const statement: VariableDefinitionStatement = {
+            statementType: "VARIABLE_DEFINITION_STATEMENT",
+            identifier: identifier,
+            dataType: dataType,
+            value: parseExpression(),
+          };
+
+          addStatement(statement);
+          break;
+        } else {
+          log(
+            "Unexpected datatype for variable declaration: " + dataType,
+            ErrorType.E_SYNTAX,
+            ErrorLevel.ERROR
+          );
+          break;
+        }
+      } else {
+        log(
+          "Expected T_ASSIGN or T_PARENTHESIS_OPEN after variable declaration, got " +
+            nextToken.type,
+          ErrorType.E_SYNTAX,
+          ErrorLevel.ERROR
+        );
+        break;
+      }
     }
     default: {
-      parseExpression();
-      break;
+      addStatement(parseExpression());
     }
   }
 };
 
+/**
+ * expression order of execution from high to low
+ * 1. primary expressions, e.g. expressions in parentheses, literal expressions, identifier expressions
+ * 2. binary expressions
+ *   a. multiplicative expressions
+ *   b. additive expressions
+ *   c. logical expressions
+ */
 const parseExpression = (): Expression => {
   return parseLogicalExpression();
 };
@@ -70,36 +116,15 @@ const parseLogicalExpression = (): Expression => {
     const right = parseAdditiveExpression();
 
     left = {
-      type: "BINARY_EXPRESSION",
+      statementType: "EXPRESSION_STATEMENT",
+      expressionType: "BINARY_EXPRESSION",
       left,
-      right,
+      right: right,
       operator: "==",
     } as BinaryExpression;
   }
 
   return left;
-};
-
-const parseVariableDeclaration = (): void => {
-  const dataTypeToken = getCurrentTokenAndRemoveFromList();
-  const identifierToken = getCurrentTokenAndRemoveFromList();
-  if (identifierToken.type !== "T_IDENTIFIER") {
-    log("Expected identifier, got " + identifierToken.value, ErrorType.E_SYNTAX, ErrorLevel.ERROR);
-  }
-  const nextToken = getCurrentTokenAndRemoveFromList();
-
-  if (nextToken.type === "T_EOI" || nextToken.type === "T_ASSIGN") {
-    const variableDeclaration: VariableDeclaration = {
-      type: "VARIABLE_DECLARATION",
-      identifier: identifierToken.value,
-      value: nextToken.type === "T_EOI" ? undefined : parseExpression(),
-      dataType: dataTypeToken.value,
-    };
-
-    addStatement(variableDeclaration);
-  } else if (nextToken.type === "T_PARENTHESIS_OPEN") {
-    console.log("Function definition");
-  }
 };
 
 const parseAdditiveExpression = (): Expression => {
@@ -109,7 +134,8 @@ const parseAdditiveExpression = (): Expression => {
     const right = parseMultiplicativeExpression();
 
     left = {
-      type: "BINARY_EXPRESSION",
+      statementType: "EXPRESSION_STATEMENT",
+      expressionType: "BINARY_EXPRESSION",
       left,
       right,
       operator,
@@ -117,38 +143,46 @@ const parseAdditiveExpression = (): Expression => {
   }
   return left;
 };
+
 const parseMultiplicativeExpression = (): Expression => {
   // no multiplication for now!
   return parsePrimaryExpression();
 };
 
-const parsePrimaryExpression = (): Expression | Identifier | VariableAssignment => {
+const parsePrimaryExpression = ():
+  | Expression
+  | VariableAssignmentExpression
+  | IdentifierExpression
+  | NumericLiteralExpression => {
   const token = getCurrentToken();
   switch (token.type) {
     case "T_IDENTIFIER": {
-      const symbol = getCurrentTokenAndRemoveFromList().value;
+      const identifier: IdentifierExpression = {
+        statementType: "EXPRESSION_STATEMENT",
+        expressionType: "IDENTIFIER_LITERAL_EXPRESSION",
+        symbol: getCurrentTokenAndRemoveFromList().value,
+      };
       const nextToken = getCurrentToken();
 
       if (nextToken.type === "T_ASSIGN") {
         getCurrentTokenAndRemoveFromList();
         return {
-          type: "VARIABLE_ASSIGNMENT",
-          identifier: symbol,
+          statementType: "EXPRESSION_STATEMENT",
+          expressionType: "VARIABLE_ASSIGNMENT_EXPRESSION",
+          identifier: identifier,
           value: parseExpression(),
         };
       }
 
-      return {
-        type: "IDENTIFIER",
-        symbol: symbol,
-      };
+      return identifier;
     }
 
     case "T_NUMERIC_LITERAL": {
       return {
-        type: "NUMERIC_LITERAL",
+        statementType: "EXPRESSION_STATEMENT",
+        expressionType: "NUMBER_LITERAL_EXPRESSION",
         value: BigInt(getCurrentTokenAndRemoveFromList().value),
-      } as NumericLiteral;
+      };
     }
 
     case "T_PARENTHESIS_OPEN": {

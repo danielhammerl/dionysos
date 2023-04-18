@@ -11,7 +11,10 @@ export function runCompiler(source: string, options?: any): string {
   const ast = parse(tokens);
 
   if (options?.debug) {
-    console.log(ast);
+    console.log("Logging ast as json ...");
+    console.log("----------   ");
+    console.log(JSON.stringify(ast, (_, v) => (typeof v === "bigint" ? v.toString() : v)));
+    console.log("----------   ");
   }
 
   return compile(ast);
