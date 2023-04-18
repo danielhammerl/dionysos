@@ -58,6 +58,8 @@ const charTokenMap: Partial<Record<string, TokenType>> = {
   "-": "T_MINUS",
   "(": "T_PARENTHESIS_OPEN",
   ")": "T_PARENTHESIS_CLOSE",
+  ",": "T_COMMA",
+  "*": "T_ASTERISK",
 };
 
 const isIgnorable = (input: string) => {

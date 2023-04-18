@@ -8,6 +8,8 @@ export type TokenType =
   | "T_CMP_EQUALS" // ==
   | "T_PLUS" // +
   | "T_MINUS" // -
+  | "T_COMMA" // -
+  | "T_ASTERISK" // -
   | "T_PARENTHESIS_OPEN" // (
   | "T_PARENTHESIS_CLOSE"; // )
 
