@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "ts-node ./src/index.ts --debug",
-    "test": "jest"
+    "test": "jest",
+    "lint:types": "tsc --noEmit"
   },
   "repository": {
     "type": "git",

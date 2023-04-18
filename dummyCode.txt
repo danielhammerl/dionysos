@@ -8,4 +8,3 @@ wow sogar block kommentare gehen
 uint16 x = 15+15;
 uint16 y = 31;
 uint16 z= x == ((y - 1) + 5) - 5;
-void function();

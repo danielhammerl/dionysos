@@ -9,6 +9,8 @@ export type NodeType =
 
 /*
  Difference between Statement and Expression: Statements do something, expressions are evaluated into a value
+ statements are for example if, while, variable declarations, function declarations
+ expressions are for example 4+8, a() || b(), y = (4*4+getNumber()) - 1
  */
 
 export interface Statement {
@@ -16,7 +18,7 @@ export interface Statement {
 }
 export interface Expression extends Statement {}
 
-export interface Program extends Statement {
+export interface Program {
   type: "PROGRAM";
   body: Statement[];
 }

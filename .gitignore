@@ -7,3 +7,4 @@ source.dcaasm
 !.npmrc
 source.dcabin
 examples
+dummyCodeCompiled.dcaasm
