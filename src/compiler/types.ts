@@ -1,9 +1,9 @@
-import { dataTypeList } from "../constants/dataTypes";
-import {RegisterName} from "./register";
+import { DataType } from "../constants/dataTypes";
+import { RegisterName } from "./register";
 
 export interface Variable {
   identifier: string;
-  dataType: Omit<typeof dataTypeList[number], "void">;
+  dataType: Omit<DataType, "void">;
   storedAt: RegisterName | null;
 }
 
