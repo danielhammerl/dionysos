@@ -11,7 +11,9 @@ export type TokenType =
   | "T_COMMA" // ,
   | "T_ASTERISK" // *
   | "T_PARENTHESIS_OPEN" // (
-  | "T_PARENTHESIS_CLOSE"; // )
+  | "T_PARENTHESIS_CLOSE" // )
+  | "T_BRACES_OPEN" // {
+  | "T_BRACES_CLOSE"; // }
 
 export interface Token {
   type: TokenType;
