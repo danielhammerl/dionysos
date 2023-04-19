@@ -1,6 +1,6 @@
 import { Token, TokenType } from "../types/token";
 import { isAlphaNumeric, isNumeric } from "../utils/util";
-import { ErrorLevel, ErrorType, log } from "../utils/log";
+import { CompilationStep, ErrorLevel, ErrorType, log } from "../utils/log";
 import { dataTypeList } from "../constants/dataTypes";
 
 export const lexicate = (input: string): Token[] => {
@@ -39,7 +39,12 @@ export const lexicate = (input: string): Token[] => {
         tokens.push({ type: "T_IDENTIFIER", value: multiCharString });
       }
     } else {
-      return log("Unrecognized Token: " + char, ErrorType.E_UNRECOGNIZED_TOKEN, ErrorLevel.ERROR);
+      return log(
+        "Unrecognized Token: " + char,
+        ErrorType.E_UNRECOGNIZED_TOKEN,
+        CompilationStep.LEXING,
+        ErrorLevel.ERROR
+      );
     }
   }
 

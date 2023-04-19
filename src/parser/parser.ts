@@ -9,7 +9,7 @@ import {
   VariableDefinitionStatement,
 } from "../types/ast";
 import { Token } from "../types/token";
-import { ErrorLevel, ErrorType, log } from "../utils/log";
+import { CompilationStep, ErrorLevel, ErrorType, log } from "../utils/log";
 import { DataType } from "../constants/dataTypes";
 
 const tokensToParse: Token[] = [];
@@ -76,6 +76,7 @@ const parseStatement = (): void => {
           log(
             "Unexpected datatype for variable declaration: " + dataType,
             ErrorType.E_SYNTAX,
+            CompilationStep.PARSING,
             ErrorLevel.ERROR
           );
           break;
@@ -85,6 +86,7 @@ const parseStatement = (): void => {
           "Expected T_ASSIGN or T_PARENTHESIS_OPEN after variable declaration, got " +
             nextToken.type,
           ErrorType.E_SYNTAX,
+          CompilationStep.PARSING,
           ErrorLevel.ERROR
         );
         break;
@@ -193,6 +195,7 @@ const parsePrimaryExpression = ():
         return log(
           "Expected closing parenthesis, got: " + token.type,
           ErrorType.E_SYNTAX,
+          CompilationStep.PARSING,
           ErrorLevel.ERROR
         );
       }
@@ -204,6 +207,7 @@ const parsePrimaryExpression = ():
       return log(
         "Unimplemented token in parser: " + token.value,
         ErrorType.E_NOT_IMPLEMENTED,
+        CompilationStep.PARSING,
         ErrorLevel.INTERNAL
       );
     }

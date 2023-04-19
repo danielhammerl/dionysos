@@ -1,7 +1,7 @@
 import { Registers } from "@danielhammerl/dca-architecture";
 import { RegisterUsage } from "./types";
 import * as lodash from "lodash";
-import { ErrorLevel, ErrorType, log } from "../utils/log";
+import { CompilationStep, ErrorLevel, ErrorType, log } from "../utils/log";
 
 export type RegisterName = typeof Registers[number];
 
@@ -43,7 +43,12 @@ export function getNextFreeRegister(newState: RegisterUsage): RegisterName {
 
   if (nextFreeRegister === null) {
     // handle this
-    log("No free register!", ErrorType.E_NOT_IMPLEMENTED, ErrorLevel.INTERNAL);
+    log(
+      "No free register!",
+      ErrorType.E_NOT_IMPLEMENTED,
+      CompilationStep.COMPILING,
+      ErrorLevel.INTERNAL
+    );
   }
 
   customRegistersUsageMap[nextFreeRegister] = newState;

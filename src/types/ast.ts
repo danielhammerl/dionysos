@@ -21,9 +21,10 @@ export type Statement<T extends StatementType = StatementType> = {
   statementType: T;
 };
 
-export type Expression<T extends ExpressionType = ExpressionType> = Statement<"EXPRESSION_STATEMENT"> & {
-  expressionType: T;
-};
+export type Expression<T extends ExpressionType = ExpressionType> =
+  Statement<"EXPRESSION_STATEMENT"> & {
+    expressionType: T;
+  };
 
 export type Program = {
   type: "PROGRAM";

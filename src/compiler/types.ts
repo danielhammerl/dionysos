@@ -9,7 +9,7 @@ export interface Variable {
 
 export type Function = {
   identifier: string;
-}
+};
 
 /**
  * FREE -> this register is free to use

@@ -9,7 +9,7 @@ import {
   VariableDefinitionStatement,
 } from "../types/ast";
 import { HalfWord, Instructions } from "@danielhammerl/dca-architecture";
-import { ErrorLevel, ErrorType, log } from "../utils/log";
+import { CompilationStep, ErrorLevel, ErrorType, log } from "../utils/log";
 import { bigIntToHex, decToHex } from "../utils/util";
 import { Variable } from "./types";
 import { assignRegister, freeRegister, getNextFreeRegister, RegisterName } from "./register";
@@ -45,6 +45,7 @@ function evaluateBinaryExpression(statement: BinaryExpression): RegisterName {
     log(
       "left hand operator of binary expression have to be an expression",
       ErrorType.E_SYNTAX,
+      CompilationStep.COMPILING,
       ErrorLevel.ERROR
     );
   }
@@ -52,6 +53,7 @@ function evaluateBinaryExpression(statement: BinaryExpression): RegisterName {
     log(
       "right hand operator of binary expression have to be an expression",
       ErrorType.E_SYNTAX,
+      CompilationStep.COMPILING,
       ErrorLevel.ERROR
     );
   }
@@ -92,6 +94,7 @@ function evaluateBinaryExpression(statement: BinaryExpression): RegisterName {
       log(
         "Not implemented binary expression operator " + statement.operator,
         ErrorType.E_NOT_IMPLEMENTED,
+        CompilationStep.COMPILING,
         ErrorLevel.INTERNAL
       );
     }
@@ -112,11 +115,17 @@ function compileStatement(statement: Statement): RegisterName | null {
         log(
           "Unrecognized datatype: " + dataType,
           ErrorType.E_UNRECOGNIZED_TOKEN,
+          CompilationStep.COMPILING,
           ErrorLevel.INTERNAL
         );
       }
       if (variableRegistry.find((item) => item.identifier === identifier.symbol)) {
-        log("Cannot redeclare variable " + identifier.symbol, ErrorType.E_IDENTIFIER_IN_USE, ErrorLevel.ERROR);
+        log(
+          "Cannot redeclare variable " + identifier.symbol,
+          ErrorType.E_IDENTIFIER_IN_USE,
+          CompilationStep.COMPILING,
+          ErrorLevel.ERROR
+        );
       }
       const valueStoredAt = value ? compileStatement(value) : null;
 
@@ -140,6 +149,7 @@ function compileStatement(statement: Statement): RegisterName | null {
       log(
         "Not implemented statement " + statement.statementType,
         ErrorType.E_NOT_IMPLEMENTED,
+        CompilationStep.COMPILING,
         ErrorLevel.INTERNAL
       );
     }
@@ -178,7 +188,12 @@ function compileExpression(expression: Expression): RegisterName | null {
           return registerToUse;
         }
       } else {
-        return log("Undefined identifier : " + identifier, ErrorType.E_UNDEFINED, ErrorLevel.ERROR);
+        return log(
+          "Undefined identifier : " + identifier,
+          ErrorType.E_UNDEFINED,
+          CompilationStep.COMPILING,
+          ErrorLevel.ERROR
+        );
       }
     }
 
@@ -186,7 +201,12 @@ function compileExpression(expression: Expression): RegisterName | null {
       const { identifier, value } = expression as VariableAssignmentExpression;
       const variable = variableRegistry.find((item) => item.identifier === identifier.symbol);
       if (!variable) {
-        return log("Undefined variable " + variable, ErrorType.E_UNDEFINED, ErrorLevel.ERROR);
+        return log(
+          "Undefined variable " + variable,
+          ErrorType.E_UNDEFINED,
+          CompilationStep.COMPILING,
+          ErrorLevel.ERROR
+        );
       }
 
       variable.storedAt = compileStatement(value);
@@ -202,6 +222,7 @@ function compileExpression(expression: Expression): RegisterName | null {
       return log(
         "Not implemented expression " + expression.expressionType,
         ErrorType.E_NOT_IMPLEMENTED,
+        CompilationStep.COMPILING,
         ErrorLevel.INTERNAL
       );
     }
