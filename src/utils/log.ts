@@ -11,6 +11,7 @@ export enum ErrorType {
   E_SYNTAX,
   E_NOT_IMPLEMENTED,
   E_UNDEFINED,
+  E_IDENTIFIER_IN_USE,
 }
 
 const levelStringMap: Record<ErrorLevel, string> = {
@@ -21,6 +22,17 @@ const levelStringMap: Record<ErrorLevel, string> = {
   [ErrorLevel.DEBUG]: "DEBUG",
 };
 
+class CustomError extends Error {
+  type: ErrorType;
+  level: ErrorLevel;
+  constructor(message: string, type: ErrorType, level: ErrorLevel) {
+    super(message);
+
+    this.type = type;
+    this.level = level;
+  }
+}
+
 function log(message: string, type: ErrorType, level: ErrorLevel.INTERNAL): never;
 function log(message: string, type: ErrorType, level: ErrorLevel.ERROR): never;
 function log(message: string, type: ErrorType, level: ErrorLevel): void;
@@ -29,7 +41,7 @@ function log(message: string, type: ErrorType, level: ErrorLevel): void {
   console.log(levelToString + ": " + message + " (E" + type + ")");
 
   if (level < ErrorLevel.WARNING) {
-    process.exit(1);
+    throw new CustomError(message, type, level);
   }
 }
 

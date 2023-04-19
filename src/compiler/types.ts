@@ -7,6 +7,10 @@ export interface Variable {
   storedAt: RegisterName | null;
 }
 
+export type Function = {
+  identifier: string;
+}
+
 /**
  * FREE -> this register is free to use
  * LITERAL -> this register contains a literal, might be freed as soon as literal is not be used anymore ( auto freeing is not implemented yet )

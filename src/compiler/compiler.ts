@@ -115,7 +115,9 @@ function compileStatement(statement: Statement): RegisterName | null {
           ErrorLevel.INTERNAL
         );
       }
-
+      if (variableRegistry.find((item) => item.identifier === identifier.symbol)) {
+        log("Cannot redeclare variable " + identifier.symbol, ErrorType.E_IDENTIFIER_IN_USE, ErrorLevel.ERROR);
+      }
       const valueStoredAt = value ? compileStatement(value) : null;
 
       const variable: Variable = {

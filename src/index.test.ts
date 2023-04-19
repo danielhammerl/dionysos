@@ -16,4 +16,9 @@ describe("Dionysos", () => {
       expect(runCompiler(input)).toEqual(output);
     }
   });
+
+  it("should fail on redeclaraion of an variable", () => {
+    const input = "uint16 x = 1; uint16 x = 2;";
+    expect(() => runCompiler(input)).toThrow("Cannot redeclare variable x");
+  });
 });
