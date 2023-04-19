@@ -2,14 +2,16 @@ import { DataType } from "../constants/dataTypes";
 
 export type StatementType =
   | "VARIABLE_DEFINITION_STATEMENT"
-  | "FUNCTION_DEFINITION_STATEMENT" // not yet implemented
-  | "EXPRESSION_STATEMENT";
+  | "FUNCTION_DEFINITION_STATEMENT"
+  | "EXPRESSION_STATEMENT"
+  | "NOOP_STATEMENT";
 export type ExpressionType =
   | "STRING_LITERAL_EXPRESSION" // not yet implemented
   | "NUMBER_LITERAL_EXPRESSION"
   | "IDENTIFIER_LITERAL_EXPRESSION"
   | "VARIABLE_ASSIGNMENT_EXPRESSION"
-  | "BINARY_EXPRESSION";
+  | "BINARY_EXPRESSION"
+  | "NOOP_EXPRESSION";
 
 /*
  Difference between Statement and Expression: Statements do something, expressions are evaluated into a value
@@ -32,6 +34,8 @@ export type Program = {
 };
 
 export type BinaryExpressionOperator = string; // TODO specify this
+export type NoopStatement = Statement<"NOOP_STATEMENT"> & {};
+export type NoopExpression = Expression<"NOOP_EXPRESSION">;
 
 /**
  * Binary Expression is an expression with one operator and two arguments, a left side and a right side argument

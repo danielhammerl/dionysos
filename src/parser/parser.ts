@@ -1,10 +1,12 @@
 import {
   BinaryExpression,
   Expression,
+  FunctionDefinitionStatement,
   IdentifierExpression,
   NumericLiteralExpression,
   Program,
   Statement,
+  StatementType,
   VariableAssignmentExpression,
   VariableDefinitionStatement,
 } from "../types/ast";
@@ -14,7 +16,6 @@ import { DataType } from "../constants/dataTypes";
 
 const tokensToParse: Token[] = [];
 const _statements: Statement[] = [];
-//const _functions: FunctionDefinition[] = [];
 const getCurrentToken = (): Token => {
   return tokensToParse[0];
 };
@@ -34,7 +35,7 @@ export const parse = (input: Token[]): Program => {
     if (getCurrentToken().type === "T_EOI") {
       getCurrentTokenAndRemoveFromList();
     } else {
-      parseStatement();
+      addStatement(parseStatement());
     }
   }
 
@@ -44,7 +45,7 @@ export const parse = (input: Token[]): Program => {
   };
 };
 
-const parseStatement = (): void => {
+const parseStatement = (): Statement => {
   const token = getCurrentToken();
   switch (token.type) {
     case "T_DATA_TYPE": {
@@ -56,10 +57,54 @@ const parseStatement = (): void => {
         symbol: getCurrentTokenAndRemoveFromList().value,
       };
 
-      const nextToken = getCurrentTokenAndRemoveFromList();
+      let nextToken = getCurrentTokenAndRemoveFromList();
       if (nextToken.type === "T_PARENTHESIS_OPEN") {
-        // function
-        break;
+        nextToken = getCurrentTokenAndRemoveFromList();
+        if (nextToken.type !== "T_PARENTHESIS_CLOSE") {
+          log(
+            "Expected token ')' after '(' but found" + nextToken.value,
+            ErrorType.E_SYNTAX,
+            CompilationStep.PARSING,
+            ErrorLevel.ERROR
+          );
+          break;
+        }
+        nextToken = getCurrentTokenAndRemoveFromList();
+        if (nextToken.type !== "T_BRACES_OPEN") {
+          log(
+            "Expected token '{' after ')' but found" + nextToken.value,
+            ErrorType.E_SYNTAX,
+            CompilationStep.PARSING,
+            ErrorLevel.ERROR
+          );
+          break;
+        }
+
+        let functionBody: Statement[] = [];
+        while (nextToken.type !== "T_BRACES_CLOSE") {
+          let statementInFunction: Statement<StatementType>;
+          if (nextToken.type !== "T_EOI") {
+            statementInFunction = parseStatement();
+            functionBody.push(statementInFunction);
+          }
+          if (nextToken.type === "T_EOF") {
+            log(
+              "Expected }, got EOF",
+              ErrorType.E_SYNTAX,
+              CompilationStep.PARSING,
+              ErrorLevel.ERROR
+            );
+          }
+          nextToken = getCurrentTokenAndRemoveFromList();
+        }
+
+        const functionDefinition: FunctionDefinitionStatement = {
+          statementType: "FUNCTION_DEFINITION_STATEMENT",
+          identifier: identifier,
+          body: functionBody,
+        };
+
+        return functionDefinition;
       } else if (nextToken.type === "T_ASSIGN") {
         // variable
         if (dataType === "uint16") {
@@ -70,8 +115,7 @@ const parseStatement = (): void => {
             value: parseExpression(),
           };
 
-          addStatement(statement);
-          break;
+          return statement;
         } else {
           log(
             "Unexpected datatype for variable declaration: " + dataType,
@@ -93,7 +137,7 @@ const parseStatement = (): void => {
       }
     }
     default: {
-      addStatement(parseExpression());
+      return parseExpression();
     }
   }
 };
@@ -201,6 +245,13 @@ const parsePrimaryExpression = ():
       }
 
       return value;
+    }
+    case "T_EOI": {
+      getCurrentTokenAndRemoveFromList();
+      return {
+        statementType: "EXPRESSION_STATEMENT",
+        expressionType: "NOOP_EXPRESSION",
+      };
     }
 
     default: {
