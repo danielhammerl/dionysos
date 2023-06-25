@@ -18,7 +18,9 @@ describe("Dionysos", () => {
   });
 
   it("should fail on redeclaraion of an variable", () => {
+    console.log = jest.fn();
     const input = "uint16 x = 1; uint16 x = 2;";
     expect(() => runCompiler(input)).toThrow("Cannot redeclare variable x");
+    expect(console.log).toHaveBeenCalled();
   });
 });

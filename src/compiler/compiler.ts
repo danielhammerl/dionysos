@@ -11,12 +11,13 @@ import {
 import { HalfWord, Instructions } from "@danielhammerl/dca-architecture";
 import { CompilationStep, ErrorLevel, ErrorType, log } from "../utils/log";
 import { bigIntToHex, decToHex } from "../utils/util";
-import { Variable } from "./types";
+import { FunctionDef, Scope, Variable } from "./types";
 import { assignRegister, freeRegister, getNextFreeRegister, RegisterName } from "./register";
 import { addAsmLines, getCalculatedAsmLines, getNextFreeAsmLineNumber } from "./asmResult";
 import { getLineOffsetInBytes } from "./utils";
+import { addVariable, findVariable } from "./variables";
 
-const variableRegistry: Variable[] = [];
+const functionRegistry: FunctionDef[] = [];
 
 function buildAsmLine(
   instruction: typeof Instructions[number],
@@ -27,19 +28,20 @@ function buildAsmLine(
   addAsmLines(`${instruction} ${operand1} ${operand2AsString}`);
 }
 
+// START HERE
 export function compile(program: Program): string {
   const { body } = program;
 
   body.forEach((statement) => {
-    compileStatement(statement);
+    compileStatement(statement, null);
   });
 
   return getCalculatedAsmLines().join("\n");
 }
 
-function evaluateBinaryExpression(statement: BinaryExpression): RegisterName {
-  const left = compileStatement(statement.left);
-  const right = compileStatement(statement.right);
+function evaluateBinaryExpression(statement: BinaryExpression, scope: Scope | null): RegisterName {
+  const left = compileStatement(statement.left, scope);
+  const right = compileStatement(statement.right, scope);
 
   if (!left) {
     log(
@@ -106,7 +108,7 @@ function evaluateBinaryExpression(statement: BinaryExpression): RegisterName {
  * if the statement is an expression it returns the register
  * in which the result is stored, otherwise it returns null
  */
-function compileStatement(statement: Statement): RegisterName | null {
+function compileStatement(statement: Statement, scope: Scope | null): RegisterName | null {
   switch (statement.statementType) {
     case "VARIABLE_DEFINITION_STATEMENT": {
       const { identifier, dataType, value } = statement as VariableDefinitionStatement;
@@ -119,7 +121,7 @@ function compileStatement(statement: Statement): RegisterName | null {
           ErrorLevel.INTERNAL
         );
       }
-      if (variableRegistry.find((item) => item.identifier === identifier.symbol)) {
+      if (findVariable(identifier.symbol, scope)) {
         log(
           "Cannot redeclare variable " + identifier.symbol,
           ErrorType.E_IDENTIFIER_IN_USE,
@@ -127,7 +129,7 @@ function compileStatement(statement: Statement): RegisterName | null {
           ErrorLevel.ERROR
         );
       }
-      const valueStoredAt = value ? compileStatement(value) : null;
+      const valueStoredAt = value ? compileStatement(value, scope) : null;
 
       const variable: Variable = {
         identifier: identifier.symbol,
@@ -137,12 +139,16 @@ function compileStatement(statement: Statement): RegisterName | null {
       if (valueStoredAt) {
         assignRegister(valueStoredAt, "VARIABLE");
       }
-      variableRegistry.push(variable);
+      addVariable(variable);
       return variable.storedAt;
     }
 
     case "EXPRESSION_STATEMENT": {
-      return compileExpression(statement as Expression);
+      return compileExpression(statement as Expression, scope);
+    }
+
+    case "FUNCTION_DEFINITION_STATEMENT": {
+      console.log("OK");
     }
 
     default: {
@@ -156,10 +162,10 @@ function compileStatement(statement: Statement): RegisterName | null {
   }
 }
 
-function compileExpression(expression: Expression): RegisterName | null {
+function compileExpression(expression: Expression, scope: Scope | null): RegisterName | null {
   switch (expression.expressionType) {
     case "BINARY_EXPRESSION": {
-      return evaluateBinaryExpression(expression as BinaryExpression);
+      return evaluateBinaryExpression(expression as BinaryExpression, scope);
     }
 
     case "NUMBER_LITERAL_EXPRESSION": {
@@ -176,7 +182,7 @@ function compileExpression(expression: Expression): RegisterName | null {
 
     case "IDENTIFIER_LITERAL_EXPRESSION": {
       const identifier = (expression as IdentifierExpression).symbol;
-      const variable = variableRegistry.find((variable) => variable.identifier === identifier);
+      const variable = findVariable(identifier, scope);
       if (variable) {
         if (variable.storedAt !== null) {
           return variable.storedAt;
@@ -199,7 +205,7 @@ function compileExpression(expression: Expression): RegisterName | null {
 
     case "VARIABLE_ASSIGNMENT_EXPRESSION": {
       const { identifier, value } = expression as VariableAssignmentExpression;
-      const variable = variableRegistry.find((item) => item.identifier === identifier.symbol);
+      const variable = findVariable(identifier.symbol, scope);
       if (!variable) {
         return log(
           "Undefined variable " + variable,
@@ -209,7 +215,7 @@ function compileExpression(expression: Expression): RegisterName | null {
         );
       }
 
-      variable.storedAt = compileStatement(value);
+      variable.storedAt = compileStatement(value, scope);
 
       if (variable.storedAt) {
         assignRegister(variable.storedAt, "VARIABLE");

@@ -7,8 +7,13 @@ export interface Variable {
   storedAt: RegisterName | null;
 }
 
-export type Function = {
+export type FunctionDef = {
   identifier: string;
+  precompiledAsmLines: string[];
+};
+
+export type Scope = {
+  variables: Variable[];
 };
 
 /**
