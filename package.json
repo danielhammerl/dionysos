@@ -9,7 +9,9 @@
   "scripts": {
     "start": "ts-node ./src/index.ts --debug",
     "test": "jest",
-    "lint:types": "tsc --noEmit"
+    "test:watch": "jest --watch",
+    "lint:types": "tsc --noEmit",
+    "check:updates": "ncu -m"
   },
   "repository": {
     "type": "git",
