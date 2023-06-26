@@ -134,13 +134,13 @@ function compileStatement(statement: Statement, scope: Scope | null): RegisterNa
       const variable: Variable = {
         identifier: identifier.symbol,
         dataType,
-        storedAt: valueStoredAt,
+        currentlyInRegister: valueStoredAt,
       };
       if (valueStoredAt) {
         assignRegister(valueStoredAt, "VARIABLE");
       }
       addVariable(variable);
-      return variable.storedAt;
+      return variable.currentlyInRegister;
     }
 
     case "EXPRESSION_STATEMENT": {
@@ -184,8 +184,8 @@ function compileExpression(expression: Expression, scope: Scope | null): Registe
       const identifier = (expression as IdentifierExpression).symbol;
       const variable = findVariable(identifier, scope);
       if (variable) {
-        if (variable.storedAt !== null) {
-          return variable.storedAt;
+        if (variable.currentlyInRegister !== null) {
+          return variable.currentlyInRegister;
         } else {
           const registerToUse = getNextFreeRegister("VARIABLE");
           // default value for undefined variables is 0
@@ -215,13 +215,13 @@ function compileExpression(expression: Expression, scope: Scope | null): Registe
         );
       }
 
-      variable.storedAt = compileStatement(value, scope);
+      variable.currentlyInRegister = compileStatement(value, scope);
 
-      if (variable.storedAt) {
-        assignRegister(variable.storedAt, "VARIABLE");
+      if (variable.currentlyInRegister) {
+        assignRegister(variable.currentlyInRegister, "VARIABLE");
       }
 
-      return variable.storedAt;
+      return variable.currentlyInRegister;
     }
 
     default: {

@@ -4,7 +4,7 @@ import { RegisterName } from "./register";
 export interface Variable {
   identifier: string;
   dataType: Omit<DataType, "void">;
-  storedAt: RegisterName | null;
+  currentlyInRegister: RegisterName | null;
 }
 
 export type FunctionDef = {
