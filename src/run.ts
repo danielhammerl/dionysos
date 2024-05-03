@@ -3,6 +3,8 @@ import { lexicate } from "./lexer/lexer";
 import { parse } from "./parser/parser";
 import { compile } from "./compiler/compiler";
 
+// real entry without cli
+
 export function runCompiler(source: string, options?: any): string {
   const preprocessed = preprocessing(source);
 

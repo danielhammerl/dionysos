@@ -4,6 +4,8 @@ import fs from "fs";
 import { program } from "commander";
 import { runCompiler } from "./run";
 
+// contains cli wrapper
+
 function run(source: string, output: string, options: any) {
   try {
     console.log("Starting dionysos dca compiler ...");
