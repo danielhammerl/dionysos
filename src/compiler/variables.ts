@@ -9,6 +9,14 @@ export function findVariable(identifier: Variable["identifier"], scope: Scope | 
   );
 }
 
-export function addVariable(variable: Variable) {
-  globalVariableRegistry.push(variable);
+export function addGlobalVariable(variable: Variable) {
+  addVariable(variable, null);
+}
+
+export function addVariable(variable: Variable, scope: Scope | null) {
+  if (scope === null) {
+    globalVariableRegistry.push(variable);
+  } else {
+    scope.variables.push(variable);
+  }
 }

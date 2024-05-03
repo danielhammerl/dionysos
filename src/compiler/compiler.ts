@@ -129,7 +129,8 @@ function compileStatement(statement: Statement, scope: Scope | null): RegisterNa
       if (valueStoredAt) {
         assignRegister(valueStoredAt, "VARIABLE");
       }
-      addVariable(variable);
+      addVariable(variable, scope);
+
       return variable.currentlyInRegister;
     }
 
