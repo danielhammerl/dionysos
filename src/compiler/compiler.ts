@@ -8,25 +8,15 @@ import {
   VariableAssignmentExpression,
   VariableDefinitionStatement,
 } from "../types/ast";
-import { HalfWord, Instructions } from "@danielhammerl/dca-architecture";
 import { CompilationStep, ErrorLevel, ErrorType, log } from "../utils/log";
 import { bigIntToHex, decToHex } from "../utils/util";
 import { FunctionDef, Scope, Variable } from "./types";
 import { assignRegister, freeRegister, getNextFreeRegister, RegisterName } from "./register";
-import { addAsmLines, getCalculatedAsmLines, getNextFreeAsmLineNumber } from "./asmResult";
+import { buildAsmLine, getCalculatedAsmLines, getNextFreeAsmLineNumber } from "./asmResult";
 import { getLineOffsetInBytes } from "./utils";
 import { addVariable, findVariable } from "./variables";
 
 const functionRegistry: FunctionDef[] = [];
-
-function buildAsmLine(
-  instruction: typeof Instructions[number],
-  operand1: string,
-  operand2: string | HalfWord
-) {
-  const operand2AsString = Array.isArray(operand2) ? operand2.join(" ") : operand2;
-  addAsmLines(`${instruction} ${operand1} ${operand2AsString}`);
-}
 
 // START HERE
 export function compile(program: Program): string {
@@ -149,6 +139,7 @@ function compileStatement(statement: Statement, scope: Scope | null): RegisterNa
 
     case "FUNCTION_DEFINITION_STATEMENT": {
       console.log("OK");
+      return null;
     }
 
     default: {
